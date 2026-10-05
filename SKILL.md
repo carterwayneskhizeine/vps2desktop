@@ -35,7 +35,7 @@ ssh -o ControlMaster=yes -o ControlPath="$SSHCTL" -o ControlPersist=30m \
 ssh -o ControlPath="$SSHCTL" -p <port> <user>@<host> '<command>'       # reuse for everything
 ```
 
-- **Non-interactive shells do not source `.bashrc`**: nvm, conda, and `~/.local/bin` are NOT on PATH. Prefix remote commands with `export PATH=/root/.local/bin:/root/.nvm/versions/node/*/bin:$PATH` or use absolute paths — in *Install* and *Verify* alike.
+- **Non-interactive shells do not source `.bashrc`**: nvm, conda, and `~/.local/bin` are NOT on PATH. Prefix remote commands with `export PATH=/root/.local/bin:$PATH` plus `for d in /root/.nvm/versions/node/*/bin; do PATH="$d:$PATH"; done`, or use absolute paths — in *Install* and *Verify* alike. (Globs do not expand inside a `PATH=` assignment: a one-line `export PATH=…node/*/bin:$PATH` silently keeps the literal `*`.)
 - **Password auth without leaking it**: write an askpass helper (`SSH_ASKPASS` + `SSH_ASKPASS_REQUIRE=force`, mode 600, deleted afterwards), or `sshpass -e` with the password in an environment variable. Never `sshpass -p`, never an inline argument.
 - For sudo on the vendor user: `printf '%s\n' "$PASS" | sudo -S -p '' <cmd>`.
 

@@ -24,10 +24,12 @@ curl --fail --location --retry 3 -o chrome.deb https://dl.google.com/linux/direc
 apt-get install -y ./chrome.deb   # resolves Google's apt repo + signing key as a side effect
 rm -f chrome.deb
 
-# Root sessions crash without --no-sandbox. /usr/local/bin shadows /usr/bin in PATH:
+# Root sessions crash without --no-sandbox. /usr/local/bin shadows /usr/bin in PATH.
+# Append the flag for uid 0 only, so the same wrapper also works from non-root sessions:
 cat > /usr/local/bin/google-chrome-stable <<'EOF'
 #!/bin/sh
-exec /opt/google/chrome/chrome --no-sandbox "$@"
+[ "$(id -u)" = 0 ] && set -- "$@" --no-sandbox
+exec /opt/google/chrome/chrome "$@"
 EOF
 chmod 755 /usr/local/bin/google-chrome-stable
 
@@ -40,7 +42,7 @@ sed -i 's#Exec=/usr/bin/google-chrome-stable#Exec=/usr/local/bin/google-chrome-s
 ## Verify
 
 ```bash
-google-chrome --version && head -1 /usr/local/bin/google-chrome-stable | grep -q no-sandbox
+google-chrome --version && grep -q no-sandbox /usr/local/bin/google-chrome-stable
 ```
 
 ## Known Pitfalls

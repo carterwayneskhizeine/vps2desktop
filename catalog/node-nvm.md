@@ -33,12 +33,12 @@ npm install -g npm@latest pnpm
 ## Verify
 
 ```bash
-export PATH=/root/.nvm/versions/node/*/bin:$PATH
+for d in /root/.nvm/versions/node/*/bin; do PATH="$d:$PATH"; done
 node -v && npm -v && pnpm -v
 ```
 
 ## Known Pitfalls
 
-- **PATH discipline is everything here**: the nvm installer appends loader lines to `/root/.bashrc`, but that file early-exits for non-interactive shells — over SSH every install/verify command must `export PATH=/root/.nvm/versions/node/*/bin:$PATH` or use absolute paths.
+- **PATH discipline is everything here**: the nvm installer appends loader lines to `/root/.bashrc`, but that file early-exits for non-interactive shells — over SSH every install/verify command must put the node bin dir on PATH via `for d in /root/.nvm/versions/node/*/bin; do PATH="$d:$PATH"; done` or use absolute paths. (A glob does NOT expand inside a `PATH=` assignment — a one-line `export PATH=…node/*/bin:$PATH` silently keeps the literal `*`.)
 - Components depending on this one (`codex`, `opencode`, `pi`, `agent-browser`) resolve npm by absolute path: `/root/.nvm/versions/node/*/bin/npm`.
 - `nvm install --lts` tracks the newest LTS line — do not substitute a hardcoded major version.

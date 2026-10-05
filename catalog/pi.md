@@ -18,14 +18,14 @@ ls /root/.nvm/versions/node/*/bin/pi >/dev/null 2>&1 && echo present
 ## Install
 
 ```bash
-export PATH=/root/.nvm/versions/node/*/bin:$PATH
+for d in /root/.nvm/versions/node/*/bin; do PATH="$d:$PATH"; done
 npm install -g @earendil-works/pi-coding-agent@latest
 ```
 
 ## Verify
 
 ```bash
-export PATH=/root/.nvm/versions/node/*/bin:$PATH
+for d in /root/.nvm/versions/node/*/bin; do PATH="$d:$PATH"; done
 pi --version
 ```
 

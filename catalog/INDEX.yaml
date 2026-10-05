@@ -1,0 +1,184 @@
+# Component registry — the machine-agnostic source of truth for ids, groups,
+# dependencies and presets. Update together with CHANGELOG.md (see AGENTS.md #5).
+schema: 1
+
+presets:
+  minimal:
+    - base-tools
+  remote-desktop:
+    - base-tools
+    - xfce-desktop
+    - xrdp
+    - xrdp-audio
+    - fcitx5-chinese
+  ai-toolkit:
+    - base-tools
+    - node-nvm
+    - uv
+    - claude-code
+    - cc-switch-cli
+    - aichat
+    - codex
+    - opencode
+    - pi
+    - agent-browser
+    - tavily-cli
+  full:  # everything
+    - base-tools
+    - fail2ban
+    - xfce-desktop
+    - xrdp
+    - xrdp-audio
+    - fcitx5-chinese
+    - chrome
+    - vscode
+    - node-nvm
+    - uv
+    - anaconda
+    - claude-code
+    - cc-switch-cli
+    - aichat
+    - codex
+    - opencode
+    - pi
+    - agent-browser
+    - tavily-cli
+
+components:
+  # --- base ---
+  - id: base-tools
+    name: Base toolset
+    group: base
+    deps: []
+    channel: apt
+    summary: curl/git/gnupg, archives, build-essential, python3+venv, jq/ripgrep/tmux/htop/rsync, gh, sqlite3, clipboard helpers.
+
+  - id: fail2ban
+    name: fail2ban (sshd jail)
+    group: base
+    deps: []
+    channel: apt
+    summary: Bans IPs that repeatedly fail SSH auth. Strongly recommended alongside root password login.
+
+  # --- desktop ---
+  - id: xfce-desktop
+    name: Xfce desktop
+    group: desktop
+    deps: []
+    channel: apt
+    summary: Xfce 4 session/panel/terminal plus dbus-x11 and Noto CJK fonts.
+
+  - id: xrdp
+    name: xrdp remote desktop
+    group: desktop
+    deps: [xfce-desktop]
+    channel: apt
+    summary: xrdp + xorgxrdp, TLS 1.2+ enforced, .xsession pinned to xfce4-session.
+
+  - id: xrdp-audio
+    name: RDP audio (PipeWire)
+    group: desktop
+    deps: [xrdp]
+    channel: apt
+    summary: pipewire-module-xrdp plus root-session autostart workaround; audio works after logout/login, not session reconnect.
+
+  - id: fcitx5-chinese
+    name: Chinese input (fcitx5)
+    group: desktop
+    deps: [xfce-desktop]
+    channel: apt
+    summary: fcitx5 + chinese-addons (pinyin/cloudpinyin) with IM environment variables set system-wide.
+
+  # --- apps ---
+  - id: chrome
+    name: Google Chrome
+    group: apps
+    deps: []
+    channel: vendor-deb
+    summary: Official google-chrome-stable .deb; on root sessions a --no-sandbox wrapper is installed.
+
+  - id: vscode
+    name: Visual Studio Code
+    group: apps
+    deps: []
+    channel: vendor-deb
+    summary: Official VS Code .deb; on root sessions a wrapper with --user-data-dir is installed.
+
+  # --- runtime ---
+  - id: node-nvm
+    name: Node.js via nvm
+    group: runtime
+    deps: []
+    channel: official-script
+    summary: Latest nvm via install script, latest Node LTS, pnpm via npm. Non-interactive PATH discipline required.
+
+  - id: uv
+    name: uv (Python)
+    group: runtime
+    deps: []
+    channel: official-script
+    summary: Latest uv/uvx from astral.sh install script.
+
+  - id: anaconda
+    name: Anaconda
+    group: runtime
+    deps: []
+    channel: ai-lookup
+    summary: Agent looks up the current Anaconda installer URL + SHA256 from repo.anaconda.com at install time, verifies, installs to /root/anaconda3.
+
+  # --- ai-cli ---
+  - id: claude-code
+    name: Claude Code
+    group: ai-cli
+    deps: []
+    channel: official-script
+    summary: curl -fsSL https://claude.ai/install.sh | bash. Login is manual (OAuth).
+
+  - id: cc-switch-cli
+    name: cc-switch CLI
+    group: ai-cli
+    deps: []
+    channel: github-latest
+    summary: Provider/config switcher for Claude Code, Codex, Gemini, OpenCode, Hermes, OpenClaw, pi — via releases/latest/download/install.sh.
+
+  - id: aichat
+    name: aichat
+    group: ai-cli
+    deps: []
+    channel: github-api
+    summary: Query GitHub API for the latest release tag, then fetch the x86_64 musl tarball. Needs ~/.config/aichat/config.yaml (manual).
+
+  - id: codex
+    name: OpenAI Codex CLI
+    group: ai-cli
+    deps: [node-nvm]
+    channel: npm
+    summary: npm i -g @openai/codex. Login is manual.
+
+  - id: opencode
+    name: OpenCode
+    group: ai-cli
+    deps: [node-nvm]
+    channel: npm
+    summary: npm i -g opencode-ai (package is NOT "opencode"). Login is manual.
+
+  - id: pi
+    name: pi coding agent
+    group: ai-cli
+    deps: [node-nvm]
+    channel: npm
+    summary: npm i -g @earendil-works/pi-coding-agent (moved from badlogic; do not use @mariozechner/pi).
+
+  - id: agent-browser
+    name: agent-browser
+    group: ai-cli
+    deps: [node-nvm]
+    channel: npm
+    summary: npm i -g agent-browser, then agent-browser install --with-deps (downloads browser binaries; ffmpeg optional).
+
+  - id: tavily-cli
+    name: tavily-cli (tvly)
+    group: ai-cli
+    deps: [uv]
+    channel: uv-tool
+    summary: uv tool install tavily-cli; executable is "tvly". API key is manual.

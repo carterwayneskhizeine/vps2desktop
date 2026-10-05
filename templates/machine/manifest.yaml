@@ -1,0 +1,26 @@
+# vps2desktop machine manifest — LOCAL ONLY.
+# machines/ is gitignored by design (ADR-0002). Never commit this file.
+# Copy to machines/<alias>/manifest.yaml and fill in.
+
+machine: my-vps          # alias: short name, unique per machine
+
+credentials:             # optional — export from checklist.html, fill by hand, or tell your AI in chat
+  host:                  # IPv4, e.g. 203.0.113.10
+  port: 22
+  user:                  # whatever the vendor gave you: root / ubuntu / admin / ...
+  password:
+
+components:              # ids from catalog/INDEX.yaml; dependencies are auto-added at deploy
+  - base-tools
+  - xfce-desktop
+  - xrdp
+  - xrdp-audio
+  - fcitx5-chinese
+
+installed:               # agent-maintained record — do not edit by hand
+  # - id: claude-code
+  #   version: 2.1.289
+  #   date: 2026-10-05
+
+last_sync:               # newest catalog/CHANGELOG.md entry id seen by update-check
+notes:                   # free-form: why you chose these, reminders

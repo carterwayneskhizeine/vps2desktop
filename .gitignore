@@ -1,0 +1,7 @@
+# Machine state: manifests with credentials, profiles, local notes.
+# NEVER commit anything under machines/ — it is local-only by design (ADR-0002).
+machines/
+
+# OS junk
+.DS_Store
+Thumbs.db

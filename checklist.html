@@ -1,0 +1,284 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>🦄 vps2desktop — dreamy VPS checklist</title>
+<style>
+  :root {
+    --card: #fff5fb;
+    --ink: #7a3b6e;
+    --muted: #c489b4;
+    --line: #ffc9e8;
+    --accent: #ff5fa8;
+    --accent-ink: #ffffff;
+    --chip: #ffe1f2;
+    --rainbow: linear-gradient(90deg, #ff8fd0, #ffb38a, #ffe38a, #9de8b8, #8fc9ff, #c79bff);
+    --card-shadow: 0 8px 24px rgba(255, 111, 181, .18);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --card: #3b2a52;
+      --ink: #ffe9f7;
+      --muted: #c39ad4;
+      --line: #5d4378;
+      --accent: #ff7fbe;
+      --accent-ink: #2a1330;
+      --chip: #55306e;
+      --card-shadow: 0 8px 24px rgba(0, 0, 0, .35);
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; color: var(--ink);
+    font: 15px/1.6 "Comic Sans MS", "Comic Neue", "Chalkboard SE", "Segoe UI", sans-serif;
+    background: linear-gradient(160deg, #ffe3f1, #fff6d9 30%, #e3fbef 55%, #e3edff 78%, #f3e6ff);
+    background-attachment: fixed;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) body {
+      background: linear-gradient(160deg, #241432, #2d1b45 40%, #1d2447 75%, #3a1b4d);
+      background-attachment: fixed;
+    }
+  }
+  /* floating dreamy sparkles — purely decorative */
+  .float { position: fixed; z-index: 0; pointer-events: none; opacity: .8;
+           animation: floaty 7s ease-in-out infinite; font-size: 26px; }
+  @keyframes floaty { 0%,100% { transform: translateY(0) rotate(-4deg); } 50% { transform: translateY(-14px) rotate(5deg); } }
+
+  main { max-width: 880px; margin: 0 auto; padding: 28px 16px 130px; position: relative; z-index: 1; }
+  h1 {
+    font-size: 26px; margin: 0 0 6px;
+    background: var(--rainbow); -webkit-background-clip: text; background-clip: text;
+    color: transparent; font-weight: 800; letter-spacing: .01em;
+  }
+  .tagline { color: var(--muted); margin: 0 0 20px; }
+  .tagline code { background: var(--chip); color: var(--accent); border-radius: 6px; padding: 1px 6px; }
+  .card {
+    background: var(--card); border: 2px dashed var(--line); border-radius: 26px;
+    padding: 18px 20px; margin: 0 0 18px; box-shadow: var(--card-shadow);
+    transition: transform .15s ease;
+  }
+  .card:hover { transform: translateY(-2px); }
+  .card h2 {
+    font-size: 15px; margin: 0 0 12px; text-transform: uppercase;
+    letter-spacing: .08em; color: var(--accent); font-weight: 700;
+  }
+  .presets { display: flex; flex-wrap: wrap; gap: 10px; }
+  .preset {
+    border: 2px solid var(--line); background: var(--card); color: var(--ink);
+    border-radius: 999px; padding: 8px 16px; font-size: 14px; cursor: pointer;
+    font-family: inherit; transition: all .15s ease;
+  }
+  .preset:hover { border-color: var(--accent); transform: scale(1.06) rotate(-1deg);
+                  box-shadow: 0 4px 14px rgba(255, 95, 168, .3); }
+  .preset small { color: var(--muted); display: block; font-size: 11px; text-align: left; }
+  .preset b { font-weight: 700; }
+  .preset.clear { border-style: dashed; }
+  .comp { display: flex; gap: 12px; align-items: flex-start; padding: 10px 6px;
+          border-bottom: 1px dashed var(--line); border-radius: 12px; transition: background .15s; }
+  .comp:last-child { border-bottom: none; }
+  .comp:hover { background: var(--chip); }
+  .comp input { width: 19px; height: 19px; margin-top: 2px; accent-color: var(--accent);
+                transform: scale(1.15); cursor: pointer; }
+  .comp label { cursor: pointer; }
+  .comp .name { font-weight: 700; }
+  .comp .desc { color: var(--muted); font-size: 13px; }
+  .deps { color: var(--muted); font-size: 12px; }
+  .deps code { color: var(--accent); }
+  .note { color: var(--muted); font-size: 13px; }
+  .fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+  .fields label { font-size: 12px; color: var(--muted); display: block; margin-bottom: 4px; font-weight: 700; }
+  .fields input {
+    width: 100%; padding: 9px 12px; border: 2px solid var(--line); border-radius: 14px;
+    background: var(--card); color: var(--ink); font-size: 14px; font-family: inherit;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  .fields input:focus { outline: none; border-color: var(--accent);
+                        box-shadow: 0 0 0 4px var(--chip); }
+  .fields .wide { grid-column: 1 / -1; }
+  .hint { font-size: 12px; color: var(--muted); margin-top: 10px; }
+  .hint code { background: var(--chip); color: var(--accent); border-radius: 6px; padding: 0 5px; }
+  footer {
+    position: fixed; left: 0; right: 0; bottom: 0;
+    background: var(--card); border-top: 5px solid transparent;
+    border-image: var(--rainbow) 1; box-shadow: 0 -6px 20px rgba(255, 111, 181, .2);
+  }
+  .bar { max-width: 880px; margin: 0 auto; padding: 14px 16px; display: flex;
+         gap: 14px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
+  .count { font-size: 15px; font-weight: 700; }
+  .count b { color: var(--accent); font-size: 18px; }
+  button.export {
+    background: var(--rainbow); background-size: 200% 100%;
+    color: #fff; border: none; border-radius: 999px; padding: 12px 26px;
+    font-size: 15px; font-weight: 800; cursor: pointer; font-family: inherit;
+    box-shadow: 0 6px 18px rgba(255, 95, 168, .45);
+    animation: shimmer 3s linear infinite, bob 2.4s ease-in-out infinite;
+    text-shadow: 0 1px 3px rgba(150, 40, 100, .35);
+    transition: transform .15s ease;
+  }
+  button.export:hover { transform: scale(1.08) rotate(1deg); }
+  @keyframes shimmer { to { background-position: 200% 0; } }
+  @keyframes bob { 0%,100% { translate: 0 0; } 50% { translate: 0 -3px; } }
+  .flash { animation: flash 1.2s ease; }
+  @keyframes flash { 0% { background: var(--chip); transform: scale(1.02); } 100% { background: transparent; } }
+</style>
+</head>
+<body>
+  <span class="float" style="top:8%;  left:4%;  animation-delay:0s">🦄</span>
+  <span class="float" style="top:18%; right:6%;  animation-delay:1.2s">✨</span>
+  <span class="float" style="top:55%; left:3%;   animation-delay:2.1s">☁️</span>
+  <span class="float" style="top:70%; right:4%;  animation-delay:.6s">💖</span>
+  <span class="float" style="top:40%; left:92%;  animation-delay:1.8s">🌈</span>
+  <span class="float" style="top:85%; left:8%;   animation-delay:2.7s">🌟</span>
+<main>
+  <h1>🦄✨ vps2desktop — dreamy VPS checklist 🌈</h1>
+  <p class="tagline">🎀 Pick what your new VPS should have, then export a manifest for your AI agent
+     (see <code>SKILL.md</code>). This page is a single offline file — nothing is uploaded anywhere, pinky promise! 💕</p>
+
+  <section class="card">
+    <h2>✨ Presets ✨</h2>
+    <div class="presets" id="presets"></div>
+  </section>
+
+  <section class="card">
+    <h2>🔑 Connection 💌 <span style="text-transform:none;letter-spacing:0">(optional)</span></h2>
+    <div class="fields">
+      <div><label for="alias">Machine alias 🐴</label><input id="alias" placeholder="my-vps"></div>
+      <div><label for="host">IPv4 host 🏠</label><input id="host" placeholder="203.0.113.10"></div>
+      <div><label for="port">SSH port 🚪</label><input id="port" value="22"></div>
+      <div><label for="user">Login user 👧</label><input id="user" placeholder="root / ubuntu / admin"></div>
+      <div class="wide"><label for="pass">Password 💗</label>
+        <input id="pass" type="text" placeholder="optional — or tell your AI in chat"></div>
+    </div>
+    <p class="hint">🌷 Empty fields are exported as blanks — fill the file by hand later, or just
+       tell your agent the connection details in chat. The exported manifest goes to
+       <code>machines/&lt;alias&gt;/manifest.yaml</code>, which is gitignored: it never leaves your machine! 🛡️</p>
+  </section>
+
+  <section class="card" id="groups"></section>
+</main>
+
+<footer><div class="bar">
+  <span class="count">💖 <b id="n">0</b> components selected</span>
+  <button class="export" id="export">🌈 Export manifest.yaml ✨</button>
+</div></footer>
+
+<script>
+const GROUPS = [["base","Base"],["desktop","Desktop"],["apps","Applications"],["runtime","Runtimes"],["ai-cli","AI CLIs"]];
+
+const COMPONENTS = [
+  {id:"base-tools",      name:"Base toolset",            group:"base",     deps:[],                 desc:"curl/git/jq/rg/tmux/htop/gh/build-essential/python3 — everything else assumes these"},
+  {id:"fail2ban",        name:"fail2ban (sshd jail)",    group:"base",     deps:[],                 desc:"Bans IPs hammering SSH. Strongly recommended with root password login"},
+  {id:"xfce-desktop",    name:"Xfce desktop",            group:"desktop",  deps:[],                 desc:"Xfce 4 session/panel/terminal + Noto CJK fonts"},
+  {id:"xrdp",            name:"xrdp remote desktop",     group:"desktop",  deps:["xfce-desktop"],   desc:"RDP into the Xfce session, TLS hardened"},
+  {id:"xrdp-audio",      name:"RDP audio (PipeWire)",    group:"desktop",  deps:["xrdp"],           desc:"Sound inside the RDP session, root workaround included"},
+  {id:"fcitx5-chinese",  name:"Chinese input (fcitx5)",  group:"desktop",  deps:["xfce-desktop"],   desc:"Pinyin + cloud pinyin, system-wide IM environment"},
+  {id:"chrome",          name:"Google Chrome",           group:"apps",     deps:[],                 desc:"Always the current stable .deb, root-safe wrapper"},
+  {id:"vscode",          name:"VS Code",                 group:"apps",     deps:[],                 desc:"Always the current stable .deb, root-safe wrapper"},
+  {id:"node-nvm",        name:"Node.js (nvm, LTS)",      group:"runtime",  deps:[],                 desc:"Latest nvm + latest Node LTS + pnpm; carrier for the npm-based AI CLIs"},
+  {id:"uv",              name:"uv (Python)",             group:"runtime",  deps:[],                 desc:"Astral uv/uvx via official installer"},
+  {id:"anaconda",        name:"Anaconda",                group:"runtime",  deps:[],                 desc:"Full Anaconda to /root/anaconda3, checksum-verified at install time"},
+  {id:"claude-code",     name:"Claude Code",             group:"ai-cli",   deps:[],                 desc:"Anthropic Claude Code, official native installer"},
+  {id:"cc-switch-cli",   name:"cc-switch CLI",           group:"ai-cli",   deps:[],                 desc:"Provider/config switcher for Claude Code, Codex, Gemini, OpenCode, Hermes, OpenClaw, pi"},
+  {id:"aichat",          name:"aichat",                  group:"ai-cli",   deps:[],                 desc:"All-in-one LLM CLI, static binary from GitHub latest release"},
+  {id:"codex",           name:"OpenAI Codex CLI",        group:"ai-cli",   deps:["node-nvm"],       desc:"npm global (@openai/codex)"},
+  {id:"opencode",        name:"OpenCode",                group:"ai-cli",   deps:["node-nvm"],       desc:"npm global (package is opencode-ai)"},
+  {id:"pi",              name:"pi coding agent",         group:"ai-cli",   deps:["node-nvm"],       desc:"npm global (@earendil-works/pi-coding-agent)"},
+  {id:"agent-browser",   name:"agent-browser",           group:"ai-cli",   deps:["node-nvm"],       desc:"Browser automation CLI + managed browser binaries"},
+  {id:"tavily-cli",      name:"tavily-cli (tvly)",       group:"ai-cli",   deps:["uv"],             desc:"Tavily search CLI as a uv tool (key is manual)"},
+];
+
+const ALL = COMPONENTS.map(c => c.id);
+const PRESETS = [
+  {key:"minimal",        label:"Minimal",        ids:["base-tools"], hint:"just the foundation toolset"},
+  {key:"remote-desktop", label:"Remote Desktop", ids:["base-tools","xfce-desktop","xrdp","xrdp-audio","fcitx5-chinese"], hint:"a GUI you can RDP into"},
+  {key:"ai-toolkit",     label:"AI Toolkit",     ids:["base-tools","node-nvm","uv","claude-code","cc-switch-cli","aichat","codex","opencode","pi","agent-browser","tavily-cli"], hint:"foundation + AI CLIs"},
+  {key:"full",           label:"Full",           ids:ALL, hint:"everything"},
+];
+
+const checked = new Set();
+const $ = id => document.getElementById(id);
+
+function selectDeps(id, flash) {
+  const c = COMPONENTS.find(x => x.id === id);
+  for (const d of c.deps) {
+    if (!checked.has(d)) { checked.add(d); if (flash) row(d)?.classList.add("flash"); }
+    selectDeps(d, flash);
+  }
+}
+function row(id) { return document.querySelector(`[data-id="${id}"]`); }
+function refresh() {
+  document.querySelectorAll(".comp input").forEach(i => i.checked = checked.has(i.value));
+  $("n").textContent = checked.size;
+}
+
+// Preset buttons
+for (const p of PRESETS) {
+  const b = document.createElement("button");
+  b.className = "preset";
+  b.innerHTML = `<b>${p.label}</b><small>${p.hint}</small>`;
+  b.onclick = () => { checked.clear(); p.ids.forEach(id => { checked.add(id); selectDeps(id, false); }); refresh(); };
+  $("presets").appendChild(b);
+}
+const clear = document.createElement("button");
+clear.className = "preset clear"; clear.innerHTML = "<b>Select none</b>";
+clear.onclick = () => { checked.clear(); refresh(); };
+$("presets").appendChild(clear);
+
+// Component rows grouped
+for (const [g, glabel] of GROUPS) {
+  const list = COMPONENTS.filter(c => c.group === g);
+  if (!list.length) continue;
+  const sec = document.createElement("div");
+  sec.innerHTML = `<h2>${glabel}</h2>`;
+  for (const c of list) {
+    const el = document.createElement("div");
+    el.className = "comp"; el.dataset.id = c.id;
+    const depsNote = c.deps.length
+      ? `<span class="deps">requires ${c.deps.map(d => `<code>${d}</code>`).join(", ")}</span>` : "";
+    el.innerHTML = `<input type="checkbox" id="cb-${c.id}" value="${c.id}">
+      <label for="cb-${c.id}"><span class="name">${c.name}</span>
+      <span class="deps">${c.desc}</span> ${depsNote}</label>`;
+    sec.appendChild(el);
+  }
+  $("groups").appendChild(sec);
+}
+document.querySelectorAll(".comp input").forEach(i => {
+  i.addEventListener("change", () => {
+    if (i.checked) { checked.add(i.value); selectDeps(i.value, true); }
+    else checked.delete(i.value);
+    refresh();
+  });
+});
+
+// YAML export
+const yq = v => "'" + String(v ?? "").replace(/'/g, "''") + "'";
+$("export").onclick = () => {
+  const alias = $("alias").value.trim() || "my-vps";
+  const lines = [
+    "# vps2desktop manifest — LOCAL ONLY. machines/ is gitignored (ADR-0002); never commit this file.",
+    `machine: ${yq(alias)}`,
+    "",
+    "credentials:             # filled from checklist.html — or edit here, or tell your AI in chat",
+    `  host: ${yq($("host").value.trim())}`,
+    `  port: ${yq($("port").value.trim() || "22")}`,
+    `  user: ${yq($("user").value.trim())}`,
+    `  password: ${yq($("pass").value)}`,
+    "",
+    "components:",
+    ...COMPONENTS.filter(c => checked.has(c.id)).map(c => `  - ${c.id}`),
+    "",
+    "installed:               # agent-maintained record — do not edit by hand",
+    "last_sync:               # newest catalog/CHANGELOG.md entry id seen by update-check",
+    "notes:",
+  ];
+  const blob = new Blob([lines.join("\n") + "\n"], {type: "text/yaml"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = `manifest-${alias}.yaml`;
+  a.click(); URL.revokeObjectURL(a.href);
+};
+</script>
+</body>
+</html>

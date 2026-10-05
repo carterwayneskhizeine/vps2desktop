@@ -73,7 +73,7 @@ components:
     group: desktop
     deps: [xfce-desktop]
     channel: apt
-    summary: xrdp + xorgxrdp, TLS 1.2+ enforced, .xsession pinned to xfce4-session.
+    summary: xrdp + xorgxrdp, TLS 1.2+ enforced, .xsession pinned to xfce4-session. Open 3389 in any host/cloud firewall (Vultr's 26.04 image ships ufw deny-by-default).
 
   - id: xrdp-audio
     name: RDP audio (PipeWire)

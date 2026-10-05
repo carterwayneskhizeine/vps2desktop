@@ -36,3 +36,11 @@ Presets: minimal, remote-desktop, ai-toolkit, full.
 - opencode / pi: npm ≥ 12 blocks their postinstall scripts — the install succeeds with
   only a warning and the CLI is broken until rerun with `--allow-scripts=<pkg>`
   (verified live; codex and agent-browser docs already carried this note).
+
+## c4 — 2026-10-06 — xrdp unreachable behind image-default ufw (goldie08)
+
+- xrdp: Vultr's Ubuntu 26.04 image ships ufw **enabled, default deny incoming, only 22
+  allowed**. Every install-time Verify passes and the port shows LISTEN, but RDP is
+  dropped from outside until `ufw allow 3389/tcp` (+udp) or a security-group rule is
+  added — a local check cannot see this; probe from an external host. Documented as a
+  Known Pitfall; the open-vs-source-restricted choice stays with the user.

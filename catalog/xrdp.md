@@ -40,6 +40,7 @@ systemctl is-active xrdp && ss -ltn | grep ':3389 ' && grep -E '^(security_layer
 
 ## Known Pitfalls
 
+- **Cloud images may ship ufw active with only SSH allowed** (seen on Vultr's Ubuntu 26.04 image): every Verify passes and `ss -ltn` shows `*:3389`, yet RDP is unreachable from outside — ufw's default-deny drops it silently. Check `ufw status`; if active, `ufw allow 3389/tcp` (+ `3389/udp` for the UDP transport) or an equivalent cloud security-group rule — let the user choose between open-to-world and source-restricted. A local TCP test can't detect this; probe from an external host (or the user's client).
 - **The RDP password is the system password** — after Rootify that is the root password (same one the user gave the agent).
 - In the RDP client, session type "Xorg"; leave color depth default on first try.
 - xrdp 0.9.x does not export `XRDP_SESSION` into sessions (0.10.x does) — the `xrdp-audio` component carries a workaround.

@@ -54,3 +54,14 @@ Presets: minimal, remote-desktop, ai-toolkit, full.
   parse the version from the redirect Location instead.
 - checklist.html: added snipaste; fixed the stale anaconda description
   ("checksum-verified" — obsolete since c3).
+
+## c6 — 2026-10-06 — new component: peazip
+
+- New `peazip` (apps): official GTK2 deb resolved via the GitHub releases API
+  (asset names embed the version), plus Thunar custom actions for the right-click menu —
+  Extract Here / Extract To... / Open in PeaZip / Add to ZIP / Add to 7Z
+  (verified live on goldie08, 11.3.0). GTK2 variant chosen over Qt6 to keep the GTK
+  desktop Qt-free; `apt` pulls `libgtk2.0-0t64` automatically when missing.
+- Pitfall documented: Thunar caches custom actions — a running Thunar needs a restart
+  (or relogin) before new uca.xml entries appear; empty elements in uca.xml mean
+  "show for this type", missing ones mean "don't".

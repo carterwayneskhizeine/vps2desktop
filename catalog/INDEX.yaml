@@ -33,6 +33,7 @@ presets:
     - chrome
     - vscode
     - snipaste
+    - peazip
     - node-nvm
     - uv
     - anaconda
@@ -111,6 +112,13 @@ components:
     deps: []
     channel: official-redirect
     summary: Latest AppImage via the dl.snipaste.com/linux redirect; placed on the Desktop with Xfce autostart + menu entry. F1 screenshot / F3 paste.
+
+  - id: peazip
+    name: PeaZip (archiver)
+    group: apps
+    deps: []
+    channel: github-api
+    summary: GTK2 deb via GitHub latest; adds Thunar right-click actions (extract here / extract to / open / add to zip / 7z).
 
   # --- runtime ---
   - id: node-nvm

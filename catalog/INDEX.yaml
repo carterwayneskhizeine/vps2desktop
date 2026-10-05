@@ -124,7 +124,7 @@ components:
     group: runtime
     deps: []
     channel: ai-lookup
-    summary: Agent looks up the current Anaconda installer URL + SHA256 from repo.anaconda.com at install time, verifies, installs to /root/anaconda3.
+    summary: Agent looks up the current Anaconda installer URL from repo.anaconda.com at install time and installs to /root/anaconda3. TLS-only integrity (upstream no longer publishes .sha256 checksums).
 
   # --- ai-cli ---
   - id: claude-code

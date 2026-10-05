@@ -23,3 +23,16 @@ Presets: minimal, remote-desktop, ai-toolkit, full.
   from non-root sessions); Verify greps the whole wrapper instead of only its first line.
 - agent-browser: 0.38+ stores browsers in `~/.agent-browser/browsers`; the Guard
   accepts that path as well as the old `~/.cache/agent-browser`.
+
+## c3 — 2026-10-06 — fixes from the goldie08 deploy (Ubuntu 26.04)
+
+- vscode: the documented download URL `update.code.visualstudio.com/latest/linux-deb-x64`
+  was retired upstream (404). Use the official
+  `code.visualstudio.com/sha/download?build=stable&os=linux-deb-x64` redirect instead.
+- anaconda: upstream no longer publishes `.sha256` sidecar files in the archive at all
+  (every release 404s). Checksum step removed — integrity relies on TLS to the official
+  domain (user-approved). Installer lookup now uses `sort -uV` (each filename appears
+  twice in the listing HTML; plain `-V` makes "fall back one version" resolve to itself).
+- opencode / pi: npm ≥ 12 blocks their postinstall scripts — the install succeeds with
+  only a warning and the CLI is broken until rerun with `--allow-scripts=<pkg>`
+  (verified live; codex and agent-browser docs already carried this note).

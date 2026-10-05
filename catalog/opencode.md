@@ -32,6 +32,7 @@ opencode --version
 ## Known Pitfalls
 
 - The package is `opencode-ai` — **not** `opencode`. Installing the wrong name gets an unrelated squatter package.
+- npm ≥ 12 blocks postinstall scripts: the install **succeeds with only a warning**, then `opencode --version` fails with "postinstall script was not run" (verified 2026-10-06). Rerun `npm install -g opencode-ai@latest --allow-scripts=opencode-ai`.
 - The project moved repositories (sst → anomalyco); install domain `opencode.ai` is unchanged. An official standalone installer also exists — npm is used here for the same single-runtime reason as `codex`.
 
 ## Manual follow-ups

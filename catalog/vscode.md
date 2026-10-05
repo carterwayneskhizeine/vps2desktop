@@ -7,7 +7,7 @@
 | deps | none (pair with `xfce-desktop` for actual use) |
 | channel | vendor-deb (always the current stable) |
 
-Latest stable VS Code from Microsoft's `update.code.visualstudio.com` "latest" endpoint, plus a root-safe wrapper.
+Latest stable VS Code from Microsoft's official download endpoint, plus a root-safe wrapper.
 
 ## Guard (idempotency)
 
@@ -20,7 +20,7 @@ code --version >/dev/null 2>&1 && test -x /usr/local/bin/code && echo present
 ```bash
 export DEBIAN_FRONTEND=noninteractive
 cd /tmp
-curl --fail --location --retry 3 -o code.deb "https://update.code.visualstudio.com/latest/linux-deb-x64"
+curl --fail --location --retry 3 -o code.deb "https://code.visualstudio.com/sha/download?build=stable&os=linux-deb-x64"
 apt-get install -y ./code.deb
 rm -f code.deb
 
@@ -47,5 +47,6 @@ code --version | head -1 && grep -q 'user-data-dir' /usr/local/bin/code
 
 ## Known Pitfalls
 
-- The `latest/linux-deb-x64` URL always resolves to the current stable — never pin a VS Code build.
+- The `sha/download?build=stable&os=linux-deb-x64` URL always redirects to the current stable — never pin a VS Code build. (The old `update.code.visualstudio.com/latest/...` path was retired upstream and returns 404 — verified 2026-10-06.)
+- Headless note: `code --version` may print the version to stdout only sporadically over SSH (X/ozone errors go to stderr); `dpkg-query -W code` is the reliable version source for records.
 - On root, missing `--user-data-dir` produces a broken/grey window even with `--no-sandbox` set — both flags are required.

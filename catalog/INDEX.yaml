@@ -32,6 +32,7 @@ presets:
     - fcitx5-chinese
     - chrome
     - vscode
+    - snipaste
     - node-nvm
     - uv
     - anaconda
@@ -103,6 +104,13 @@ components:
     deps: []
     channel: vendor-deb
     summary: Official VS Code .deb; on root sessions a wrapper with --user-data-dir is installed.
+
+  - id: snipaste
+    name: Snipaste (screenshot)
+    group: apps
+    deps: []
+    channel: official-redirect
+    summary: Latest AppImage via the dl.snipaste.com/linux redirect; placed on the Desktop with Xfce autostart + menu entry. F1 screenshot / F3 paste.
 
   # --- runtime ---
   - id: node-nvm

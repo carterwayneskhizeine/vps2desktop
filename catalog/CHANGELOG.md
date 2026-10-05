@@ -44,3 +44,13 @@ Presets: minimal, remote-desktop, ai-toolkit, full.
   dropped from outside until `ufw allow 3389/tcp` (+udp) or a security-group rule is
   added — a local check cannot see this; probe from an external host. Documented as a
   Known Pitfall; the open-vs-source-restricted choice stays with the user.
+
+## c5 — 2026-10-06 — new component: snipaste
+
+- New `snipaste` (apps): official always-latest Linux AppImage via the
+  `dl.snipaste.com/linux` 302 redirect, installed to `/root/Desktop/Snipaste.AppImage`
+  with an Xfce autostart entry and a menu entry (verified live on goldie08, 2.11.3).
+  Note: `--appimage-version` reports the AppImage runtime build id, not the app version —
+  parse the version from the redirect Location instead.
+- checklist.html: added snipaste; fixed the stale anaconda description
+  ("checksum-verified" — obsolete since c3).

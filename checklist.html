@@ -100,7 +100,7 @@
   .hint { font-size: 12px; color: var(--muted); margin-top: 10px; }
   .hint code { background: var(--chip); color: var(--accent); border-radius: 6px; padding: 0 5px; }
   footer {
-    position: fixed; left: 0; right: 0; bottom: 0;
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 2;
     background: var(--card); border-top: 5px solid transparent;
     border-image: var(--rainbow) 1; box-shadow: 0 -6px 20px rgba(255, 111, 181, .2);
   }
@@ -152,8 +152,9 @@
         <input id="pass" type="text" placeholder="optional — or tell your AI in chat"></div>
     </div>
     <p class="hint">🌷 Empty fields are exported as blanks — fill the file by hand later, or just
-       tell your agent the connection details in chat. The exported manifest goes to
-       <code>machines/&lt;alias&gt;/manifest.yaml</code>, which is gitignored: it never leaves your machine! 🛡️</p>
+       tell your agent the connection details in chat. Save the export as
+       <code>machines/&lt;alias&gt;/manifest.yaml</code> — create that folder right in the save dialog.
+       It's gitignored: it never leaves your machine! 🛡️</p>
   </section>
 
   <section class="card" id="groups"></section>
@@ -254,7 +255,7 @@ document.querySelectorAll(".comp input").forEach(i => {
 
 // YAML export
 const yq = v => "'" + String(v ?? "").replace(/'/g, "''") + "'";
-$("export").onclick = () => {
+$("export").onclick = async () => {
   const alias = $("alias").value.trim() || "my-vps";
   const lines = [
     "# vps2desktop manifest — LOCAL ONLY. machines/ is gitignored (ADR-0002); never commit this file.",
@@ -273,10 +274,28 @@ $("export").onclick = () => {
     "last_sync:               # newest catalog/CHANGELOG.md entry id seen by update-check",
     "notes:",
   ];
-  const blob = new Blob([lines.join("\n") + "\n"], {type: "text/yaml"});
+  const yaml = lines.join("\n") + "\n";
+  // Modern browsers (Chromium): a real Save-As dialog — navigate to machines/<alias>/
+  // (create the folder right in the dialog), and the file lands in place as manifest.yaml.
+  if (window.showSaveFilePicker) {
+    try {
+      const handle = await showSaveFilePicker({
+        suggestedName: "manifest.yaml",
+        types: [{ description: "vps2desktop manifest", accept: { "text/yaml": [".yaml"] } }],
+      });
+      const w = await handle.createWritable();
+      await w.write(yaml);
+      await w.close();
+      return;
+    } catch (e) {
+      if (e?.name === "AbortError") return;  // user closed the dialog — don't also force a download
+      // picker not available on this page — fall back to a plain download below
+    }
+  }
+  const blob = new Blob([yaml], {type: "text/yaml"});
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
-  a.download = `manifest-${alias}.yaml`;
+  a.download = `manifest-${alias}.yaml`;  // alias suffix: multiple machines don't collide in Downloads
   a.click(); URL.revokeObjectURL(a.href);
 };
 </script>

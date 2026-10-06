@@ -75,3 +75,15 @@ Presets: minimal, remote-desktop, ai-toolkit, full.
 - Pitfall documented: the GitHub repo warpdotdev/Warp tags releases without assets —
   the apt repo is the real channel. GPU-rendered UI falls back to Mesa llvmpipe under
   RDP (libgl1-mesa-dri required). First-launch login is manual.
+
+## c8 — 2026-10-06 — chrome: desktop 🌐 icon fails as root (exo chain bypasses wrapper)
+
+- chrome: the Xfce desktop Web-Browser icon and link-clicks resolve through exo helpers
+  (name `google-chrome` via PATH) and the `x-www-browser` alternative (absolute symlink
+  chain that bypasses the `/usr/local/bin` shadow). Bare chrome as root dies instantly →
+  "Failed to execute default Web Browser (input/output error)". Fix: install a second
+  root-safe wrapper named `google-chrome` and repoint the alternative to it
+  (verified live on goldie08 via `exo-open --launch WebBrowser` in the RDP session).
+- Pitfall noted: testing GUI launches from SSH requires detaching the child
+  (`setsid ... </dev/null >/dev/null 2>&1`) — it inherits the SSH stdout pipe otherwise
+  and the session never returns.

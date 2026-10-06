@@ -98,7 +98,7 @@ components:
     group: apps
     deps: []
     channel: vendor-deb
-    summary: Official google-chrome-stable .deb; on root sessions a --no-sandbox wrapper is installed.
+    summary: Official google-chrome-stable .deb; root-safe wrappers for both google-chrome and google-chrome-stable plus the x-www-browser alternative, so menu, desktop 🌐 icon and link-clicks all work as root.
 
   - id: vscode
     name: Visual Studio Code

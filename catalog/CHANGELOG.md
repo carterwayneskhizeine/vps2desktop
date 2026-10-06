@@ -87,3 +87,13 @@ Presets: minimal, remote-desktop, ai-toolkit, full.
 - Pitfall noted: testing GUI launches from SSH requires detaching the child
   (`setsid ... </dev/null >/dev/null 2>&1`) — it inherits the SSH stdout pipe otherwise
   and the session never returns.
+
+## c9 — 2026-10-06 — peazip: deb does not declare its GTK2 runtime dependency
+
+- peazip: the official deb installs fine but does NOT declare `libgtk2.0-0t64`; on
+  GTK3-only boxes the binary dies at launch with "error while loading shared libraries:
+  libgdk-x11-2.0.so.0" (hit live on goldie08/26.04). Install now adds libgtk2.0-0t64
+  explicitly, and Verify asserts `ldd` finds no missing libraries (c6's "apt pulls it
+  automatically" assumption was wrong).
+- Also corrected the SSH GUI-test technique: `setsid` execs into the child — it must be
+  backgrounded (`setsid ... &`) or the SSH script waits for the app forever.

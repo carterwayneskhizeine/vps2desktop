@@ -25,8 +25,13 @@ DEB_URL=$(curl -fsSL --max-time 20 https://api.github.com/repos/peazip/PeaZip/re
 
 cd /tmp
 curl --fail --location --retry 3 -o peazip.deb "$DEB_URL"
-apt-get install -y ./peazip.deb   # pulls libgtk2.0-0t64 if missing
+apt-get install -y ./peazip.deb
 rm -f peazip.deb
+
+# The peazip deb does NOT declare libgtk2.0 as a dependency (verified 26.04) —
+# without this the binary dies with "error while loading shared libraries:
+# libgdk-x11-2.0.so.0". Install the GTK2 runtime explicitly:
+apt-get install -y libgtk2.0-0t64 || apt-get install -y libgtk2.0-0
 
 # Thunar right-click actions (fresh profile — if uca.xml already exists, merge inside <actions> instead)
 mkdir -p /root/.config/Thunar
@@ -105,7 +110,9 @@ XML
 ## Verify
 
 ```bash
-dpkg -s peazip | grep -q 'Status: install ok installed' && command -v peazip && grep -q 'PeaZip' /root/.config/Thunar/uca.xml && echo ok
+dpkg -s peazip | grep -q 'Status: install ok installed' && command -v peazip >/dev/null \
+  && ! ldd /usr/bin/peazip | grep -q 'not found' \
+  && grep -q 'PeaZip' /root/.config/Thunar/uca.xml && echo ok
 ```
 
 ## Known Pitfalls
@@ -117,6 +124,8 @@ dpkg -s peazip | grep -q 'Status: install ok installed' && command -v peazip && 
 - Thunar patterns are case-sensitive; uppercase extensions (`*.ZIP`) won't match the lowercase entries (rare on Linux).
 - CLI flags used here (`-ext2here`, `-ext2main`, `-ext2browse`, `-add2zip`, `-add27z`) are from PeaZip's official command-line page — all open a GUI window, so they only make sense inside a session (RDP/console), never headless.
 - Optional 32-bit-only backends (notably FreeARC) need ia32 libs — skip unless a 32-bit format is actually needed.
+- **The deb does not declare `libgtk2.0-0t64` as a dependency** — on images where nothing else pulls GTK2 (typical server/Xfce-GTK3 boxes) the binary fails at launch with `error while loading shared libraries: libgdk-x11-2.0.so.0` (menu click shows nothing useful). Install it explicitly; `ldd /usr/bin/peazip | grep 'not found'` must be empty.
+- Testing launches from SSH: background the helper too — `setsid ... &` — plain `setsid` execs into the child and the SSH script then waits for the GUI app forever (the session-detach does not detach it from the script).
 
 ## Manual follow-ups
 

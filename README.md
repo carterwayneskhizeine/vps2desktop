@@ -22,7 +22,7 @@ For day-to-day updates: `git pull`, then ask your agent to *check updates* — i
 
 ## What gets installed
 
-Everything in `catalog/` is optional and selectable. Highlights: Xfce + xrdp with working audio (PipeWire), fcitx5 Chinese input, Chrome / VS Code (root-safe wrappers), nvm+Node LTS / uv / Anaconda, and the AI CLI set: Claude Code, Codex, OpenCode, pi, cc-switch, aichat, agent-browser, tavily.
+Everything in `catalog/` is optional and selectable. Highlights: Xfce + xrdp with working audio (PipeWire), fcitx5 Chinese input, Chrome / VS Code (root-safe wrappers), Snipaste (screenshot, autostarts), PeaZip (with Thunar right-click actions), Warp terminal, nvm+Node LTS / uv / Anaconda, and the AI CLI set: Claude Code, Codex, OpenCode, pi, cc-switch, aichat, agent-browser, tavily.
 
 ## Requirements
 

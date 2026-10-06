@@ -22,7 +22,7 @@
 
 ## 会装什么
 
-`catalog/` 里的一切都是可选的。亮点：Xfce + xrdp（PipeWire 音频可用）、fcitx5 中文输入、Chrome / VS Code（root 安全包装）、nvm + Node LTS / uv / Anaconda，以及 AI CLI 全家桶：Claude Code、Codex、OpenCode、pi、cc-switch、aichat、agent-browser、tavily。
+`catalog/` 里的一切都是可选的。亮点：Xfce + xrdp（PipeWire 音频可用）、fcitx5 中文输入、Chrome / VS Code（root 安全包装）、Snipaste（截图，自启动）、PeaZip（带 Thunar 右键菜单）、Warp 终端、nvm + Node LTS / uv / Anaconda，以及 AI CLI 全家桶：Claude Code、Codex、OpenCode、pi、cc-switch、aichat、agent-browser、tavily。
 
 ## 环境要求
 

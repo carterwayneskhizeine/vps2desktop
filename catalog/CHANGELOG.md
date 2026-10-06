@@ -65,3 +65,13 @@ Presets: minimal, remote-desktop, ai-toolkit, full.
 - Pitfall documented: Thunar caches custom actions — a running Thunar needs a restart
   (or relogin) before new uca.xml entries appear; empty elements in uca.xml mean
   "show for this type", missing ones mean "don't".
+
+## c7 — 2026-10-06 — new component: warp-terminal
+
+- New `warp-terminal` (apps): official GPG-signed apt repository at
+  releases.warp.dev/linux/deb (`stable` channel; Warp Preview/dev deliberately not used),
+  so `apt upgrade` tracks the latest — no AppImage (verified live on goldie08,
+  0.2026.09.30.08.29.stable.01).
+- Pitfall documented: the GitHub repo warpdotdev/Warp tags releases without assets —
+  the apt repo is the real channel. GPU-rendered UI falls back to Mesa llvmpipe under
+  RDP (libgl1-mesa-dri required). First-launch login is manual.

@@ -34,6 +34,7 @@ presets:
     - vscode
     - snipaste
     - peazip
+    - warp-terminal
     - node-nvm
     - uv
     - anaconda
@@ -119,6 +120,13 @@ components:
     deps: []
     channel: github-api
     summary: GTK2 deb via GitHub latest; adds Thunar right-click actions (extract here / extract to / open / add to zip / 7z).
+
+  - id: warp-terminal
+    name: Warp terminal
+    group: apps
+    deps: []
+    channel: apt
+    summary: Official releases.warp.dev apt repo (stable), GPG-signed; auto-updates with apt. GPU-rendered terminal — uses Mesa llvmpipe under RDP. Login manual.
 
   # --- runtime ---
   - id: node-nvm

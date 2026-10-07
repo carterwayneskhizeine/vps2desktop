@@ -171,6 +171,7 @@ const GROUPS = [["base","Base"],["desktop","Desktop"],["apps","Applications"],["
 const COMPONENTS = [
   {id:"base-tools",      name:"Base toolset",            group:"base",     deps:[],                 desc:"curl/git/jq/rg/tmux/htop/gh/build-essential/python3 — everything else assumes these"},
   {id:"fail2ban",        name:"fail2ban (sshd jail)",    group:"base",     deps:[],                 desc:"Bans IPs hammering SSH. Strongly recommended with root password login"},
+  {id:"tailscale",       name:"Tailscale",                group:"base",     deps:[],                 desc:"Private tailnet networking via official stable apt repo; login manual"},
   {id:"xfce-desktop",    name:"Xfce desktop",            group:"desktop",  deps:[],                 desc:"Xfce 4 session/panel/terminal + Noto CJK fonts"},
   {id:"xrdp",            name:"xrdp remote desktop",     group:"desktop",  deps:["xfce-desktop"],   desc:"RDP into the Xfce session, TLS hardened"},
   {id:"xrdp-audio",      name:"RDP audio (PipeWire)",    group:"desktop",  deps:["xrdp"],           desc:"Sound inside the RDP session, root workaround included"},
@@ -261,7 +262,7 @@ const yq = v => "'" + String(v ?? "").replace(/'/g, "''") + "'";
 $("export").onclick = async () => {
   const alias = $("alias").value.trim() || "my-vps";
   const lines = [
-    "# vps2desktop manifest — LOCAL ONLY. machines/ is gitignored (ADR-0002); never commit this file.",
+    "# vps2desktop manifest — LOCAL ONLY. machines/<alias>/ is gitignored (ADR-0002); never commit this file.",
     `machine: ${yq(alias)}`,
     "",
     "credentials:             # filled from checklist.html — or edit here, or tell your AI in chat",

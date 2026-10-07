@@ -1,6 +1,6 @@
-# vps2desktop machine manifest — LOCAL ONLY.
-# machines/ is gitignored by design (ADR-0002). Never commit this file.
-# Copy to machines/<alias>/manifest.yaml and fill in.
+# vps2desktop machine manifest — shared template; no real credentials here.
+# Copy to machines/<alias>/manifest.yaml before filling in (alias cannot be templates).
+# The copy is Local State, gitignored by design (ADR-0002); never commit it.
 
 machine: my-vps          # alias: short name, unique per machine
 

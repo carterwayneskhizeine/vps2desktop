@@ -20,6 +20,8 @@
 
 日常更新：`git pull`，然后让 agent *check updates*——它读取 `catalog/CHANGELOG.md`，对照你机器的 manifest，逐项询问你是否安装新内容。
 
+克隆后已有 `machines/` 目录，其中包含共享模板。你可以把 `machines/templates/` 复制为 `machines/<别名>/`，再修改复制后的清单，也可以将勾选页导出的清单保存到该目录。你的机器文件仍被 gitignore。`templates` 是保留目录名，不能用作机器别名；不要在共享模板中填写真实凭据。
+
 ## 会装什么
 
 `catalog/` 里的一切都是可选的。亮点：Xfce + xrdp（PipeWire 音频可用）、fcitx5 中文输入、Chrome / VS Code（root 安全包装）、Snipaste（截图，自启动）、PeaZip（带 Thunar 右键菜单）、Warp 终端、nvm + Node LTS / uv / Anaconda，以及 AI CLI 全家桶：Claude Code、Codex、OpenCode、pi、cc-switch、aichat、agent-browser、tavily。
@@ -44,7 +46,8 @@
 | `checklist.html` | 离线单文件组件勾选页；导出你的 manifest |
 | `catalog/` | 每个组件一篇文档：安装命令、守卫、验收、已知的坑 |
 | `catalog/INDEX.yaml` | 组件注册表：分组、依赖、预设 |
-| `machines/` | 你的本地机器状态（被 gitignore——由你/agent 创建） |
+| `machines/<别名>/` | 你的本地机器状态（被 gitignore） |
+| `machines/templates/` | 共享模板（纳入版本管理）；克隆时自动带出 `machines/` 目录 |
 | `docs/adr/` | 架构决策记录 |
 | `CONTEXT.md` | 本仓库术语表 |
 

@@ -10,11 +10,11 @@ The vocabulary of vps2desktop. Use these terms exactly; when a term gains a new 
 
 - **Manifest** — the per-machine file `machines/<alias>/manifest.yaml`: the selected components, optional connection credentials, and the agent-maintained `installed:` record (component id, version, date) plus `last_sync`. Local state; never committed.
 
-- **Machine Profile** — the per-machine `machines/<alias>/profile.md`: facts about one VPS (provider, IP, OS, what is installed, follow-ups). Written by the deploying agent. Local state; never committed.
+- **Machine Profile** — the per-machine `machines/<alias>/profile.md`: facts about one VPS (provider, IP, Hostname, Machine ID, OS, what is installed, follow-ups). Identity fields help determine whether the agent is already running on the target VPS. Written by the agent after verifying the target. Local state; never committed.
 
-- **Local State** — everything under `machines/`: manifests, profiles, credentials, notes. Gitignored by design; survives upstream `git pull` without conflict.
+- **Local State** — user-specific files under `machines/<alias>/`: manifests, profiles, credentials, notes. Gitignored by design; survives upstream `git pull` without conflict. Shared templates under `machines/templates/` are tracked and are not Local State.
 
-- **Machine Alias** — the short user-chosen name identifying one VPS (the `<alias>` in `machines/<alias>/`). Aliases are unique per user; they never appear in the catalog.
+- **Machine Alias** — the short user-chosen name identifying one VPS (the `<alias>` in `machines/<alias>/`). Aliases are unique per user; they never appear in the catalog. `templates` is reserved for shared templates.
 
 - **Rootify** — the normalization step that turns whatever login the vendor shipped (root, ubuntu, admin, ...) into the standard end-state: root password SSH login, vendor user left untouched.
 

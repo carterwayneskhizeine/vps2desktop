@@ -97,3 +97,25 @@ Presets: minimal, remote-desktop, ai-toolkit, full.
   automatically" assumption was wrong).
 - Also corrected the SSH GUI-test technique: `setsid` execs into the child — it must be
   backgrounded (`setsid ... &`) or the SSH script waits for the app forever.
+
+## c10 — 2026-10-08 — new component: tailscale
+
+- New `tailscale` (base): latest stable package from Tailscale's official signed
+  Ubuntu apt repository, with `tailscaled` enabled at boot.
+- Verify checks package, CLI and daemon independently of tailnet authorization;
+  login remains a manual follow-up. Added to the Full preset and checklist.
+
+## c11 — 2026-10-08 — Xfce status tray and Fcitx5 icon repair
+
+- xfce-desktop: add a live-session procedure to ensure the top panel's built-in
+  `systray` plugin without replacing existing panel items.
+- fcitx5-chinese: document that working input switching does not imply a visible
+  tray icon; repair the panel's StatusNotifier host before restarting Fcitx5.
+
+## c12 — 2026-10-08 — Tailscale desktop integration
+
+- tailscale: document the bundled Linux systray and local device web UI, using
+  the live desktop session's D-Bus environment. Check icon/menu compatibility
+  before enabling tray startup on root Xfce desktops; keep login manual.
+- Add a desktop/menu launcher for the local management UI and freedesktop tray
+  autostart after verification; use the panel-appropriate icon theme.

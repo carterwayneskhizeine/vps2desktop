@@ -20,6 +20,8 @@ You pick components on a checklist (Xfce desktop, Chinese input, browser, editor
 
 For day-to-day updates: `git pull`, then ask your agent to *check updates* — it reads `catalog/CHANGELOG.md`, compares with your machine's manifest, and offers to install anything new.
 
+`machines/` exists after cloning because it contains shared templates. To start from a template, copy `machines/templates/` to `machines/<alias>/` and edit the copied manifest, or save your checklist export there. Your machine files are gitignored. `templates` is reserved and cannot be used as a Machine Alias; keep the shared templates free of real credentials.
+
 ## What gets installed
 
 Everything in `catalog/` is optional and selectable. Highlights: Xfce + xrdp with working audio (PipeWire), fcitx5 Chinese input, Chrome / VS Code (root-safe wrappers), Snipaste (screenshot, autostarts), PeaZip (with Thunar right-click actions), Warp terminal, nvm+Node LTS / uv / Anaconda, and the AI CLI set: Claude Code, Codex, OpenCode, pi, cc-switch, aichat, agent-browser, tavily.
@@ -44,7 +46,8 @@ Everything in `catalog/` is optional and selectable. Highlights: Xfce + xrdp wit
 | `checklist.html` | Offline single-file component picker; exports your manifest |
 | `catalog/` | One doc per component: install commands, guards, verification, known pitfalls |
 | `catalog/INDEX.yaml` | Component registry: groups, dependencies, presets |
-| `machines/` | Your local machine state (gitignored — created by you / the agent) |
+| `machines/<alias>/` | Your Local State (gitignored) |
+| `machines/templates/` | Shared templates (tracked); creates `machines/` when cloned |
 | `docs/adr/` | Architecture Decision Records |
 | `CONTEXT.md` | Glossary of terms used across the repo |
 

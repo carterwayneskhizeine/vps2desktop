@@ -17,15 +17,20 @@ reports about machine-specific quirks that do not generalize.
 
 ## Decision
 
-The entire `machines/` tree is gitignored. Manifests (with their optional
+Local State under `machines/<alias>/` is gitignored. Manifests (with their optional
 `credentials:` block), profiles and notes live only on the user's machine.
-Upstream ships `templates/machine/` examples instead. Machine-specific lessons
+Upstream tracks only the shared `manifest.yaml`, `profile.md` and `notes.md`
+templates in `machines/templates/`, so cloning also creates `machines/`.
+All other files under `machines/` remain ignored, including extra files inside
+the template directories. Copy templates to `machines/<alias>/` before filling
+in any machine details; shared templates must never contain real credentials.
+`templates` is reserved and cannot be used as a Machine Alias. Machine-specific lessons
 stay in the user's local `notes.md`; only generally-useful pitfall fixes flow
 back upstream (CONTRIBUTING.md).
 
 ## Consequences
 
-- `git pull` never conflicts; upstream and personal state are physically separated.
+- Local State does not conflict with `git pull`; upstream templates and personal state live in separate directories.
 - Credentials never enter git history anywhere.
 - Update delivery is conversational: `git pull` + update-check mode diffs the catalog changelog against the local manifest.
-- Users must back up `machines/` themselves — it is not in git.
+- Users must back up their `machines/<alias>/` directories themselves — Local State is not in git.

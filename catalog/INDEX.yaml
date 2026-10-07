@@ -26,6 +26,7 @@ presets:
   full:  # everything
     - base-tools
     - fail2ban
+    - tailscale
     - xfce-desktop
     - xrdp
     - xrdp-audio
@@ -63,13 +64,20 @@ components:
     channel: apt
     summary: Bans IPs that repeatedly fail SSH auth. Strongly recommended alongside root password login.
 
+  - id: tailscale
+    name: Tailscale
+    group: base
+    deps: []
+    channel: apt
+    summary: Official stable apt repository; enables tailscaled for private tailnet networking. Optional desktop tray and web UI launcher require session verification; login and authorization are manual.
+
   # --- desktop ---
   - id: xfce-desktop
     name: Xfce desktop
     group: desktop
     deps: []
     channel: apt
-    summary: Xfce 4 session/panel/terminal plus dbus-x11 and Noto CJK fonts.
+    summary: Xfce 4 session/panel/terminal plus dbus-x11 and Noto CJK fonts. Live-session procedure ensures a status tray while preserving panel items.
 
   - id: xrdp
     name: xrdp remote desktop
@@ -90,7 +98,7 @@ components:
     group: desktop
     deps: [xfce-desktop]
     channel: apt
-    summary: fcitx5 + chinese-addons (pinyin/cloudpinyin) with IM environment variables set system-wide.
+    summary: fcitx5 + chinese-addons (pinyin/cloudpinyin) with IM environment variables set system-wide. Tray icons require Xfce's systray panel plugin.
 
   # --- apps ---
   - id: chrome

@@ -1,6 +1,9 @@
-# Machine state: manifests with credentials, profiles, local notes.
-# NEVER commit anything under machines/ — it is local-only by design (ADR-0002).
-machines/
+# Machine state stays local; only these shared templates are tracked (ADR-0002).
+/machines/**
+!/machines/templates/
+!/machines/templates/manifest.yaml
+!/machines/templates/profile.md
+!/machines/templates/notes.md
 
 # OS junk
 .DS_Store

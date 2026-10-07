@@ -42,3 +42,9 @@ dpkg -s fcitx5-chinese-addons | grep -q 'Status: install ok installed' && grep -
 - Toggle with `Ctrl+Space` once the tray icon shows fcitx5.
 - `im-config -n fcitx5` sometimes does not persist over SSH — that is why `.xinputrc` is written directly.
 - If pinyin candidates show as boxes, `fonts-noto-cjk` (from `xfce-desktop`) is missing.
+- If input switching works but the panel icon is missing, first ensure the
+  `systray` panel plugin using the live-session procedure in `xfce-desktop.md`.
+  Modern Xfce includes StatusNotifier support in that plugin; the notification
+  plugin alone does not display Fcitx5's icon. Verify registration with the
+  session's `org.kde.StatusNotifierWatcher` before restarting Fcitx5 or changing
+  the working input-method configuration.

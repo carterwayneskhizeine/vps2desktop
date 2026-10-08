@@ -32,6 +32,7 @@ presets:
     - xrdp-audio
     - fcitx5-chinese
     - chrome
+    - obsidian
     - vscode
     - snipaste
     - peazip
@@ -109,6 +110,13 @@ components:
     deps: []
     channel: vendor-deb
     summary: Official google-chrome-stable .deb; root-safe wrappers for both google-chrome and google-chrome-stable plus the x-www-browser alternative, so menu, desktop 🌐 icon and link-clicks all work as root.
+
+  - id: obsidian
+    name: Obsidian
+    group: apps
+    deps: [base-tools, xfce-desktop]
+    channel: github-api
+    summary: Latest official Linux x86_64 AppImage in /root/Documents, with its bundled icon extracted and a trusted desktop launcher configured for root sessions.
 
   - id: vscode
     name: Visual Studio Code

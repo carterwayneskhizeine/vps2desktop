@@ -132,3 +132,12 @@ Presets: minimal, remote-desktop, ai-toolkit, full.
 - New `docker-engine` (apps): official Docker Engine, CLI, Buildx, and Compose V2
   plugin from Docker's signed Ubuntu apt repository. Verify the running daemon and
   run `hello-world` before recording the component.
+
+## c15 — 2026-10-08 — new component: obsidian
+
+- New `obsidian` (apps): resolve the latest official x86_64 AppImage from Obsidian's
+  GitHub releases API, save it as `/root/Documents/Obsidian.AppImage`, extract its
+  bundled icon, and create a trusted desktop launcher with `--no-sandbox` for the
+  root Xfce session.
+- Depends on `base-tools` and `xfce-desktop`; installs the AppImage FUSE runtime
+  and SquashFS tools needed to run the portable app and extract only its icon.

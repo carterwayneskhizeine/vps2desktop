@@ -141,3 +141,11 @@ Presets: minimal, remote-desktop, ai-toolkit, full.
   root Xfce session.
 - Depends on `base-tools` and `xfce-desktop`; installs the AppImage FUSE runtime
   and SquashFS tools needed to run the portable app and extract only its icon.
+
+## c16 — 2026-10-08 — snipaste: Documents location and desktop integration
+
+- Update `snipaste` to save the latest official AppImage under `/root/Documents`,
+  extract its bundled icon, and create a trusted desktop launcher. Keep its Xfce
+  menu entry and session autostart, updating both to the stable Documents path.
+- Add `base-tools` and `xfce-desktop` dependencies for release resolution, icon
+  extraction and the graphical desktop integrations.

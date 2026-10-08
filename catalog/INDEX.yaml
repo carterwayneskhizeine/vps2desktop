@@ -128,9 +128,9 @@ components:
   - id: snipaste
     name: Snipaste (screenshot)
     group: apps
-    deps: []
+    deps: [base-tools, xfce-desktop]
     channel: official-redirect
-    summary: Latest AppImage via the dl.snipaste.com/linux redirect; placed on the Desktop with Xfce autostart + menu entry. F1 screenshot / F3 paste.
+    summary: Latest official AppImage via dl.snipaste.com/linux, saved in /root/Documents with extracted icon, trusted desktop launcher, Xfce autostart and menu entry. F1 screenshot / F3 paste.
 
   - id: peazip
     name: PeaZip (archiver)

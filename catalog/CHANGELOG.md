@@ -119,3 +119,16 @@ Presets: minimal, remote-desktop, ai-toolkit, full.
   before enabling tray startup on root Xfce desktops; keep login manual.
 - Add a desktop/menu launcher for the local management UI and freedesktop tray
   autostart after verification; use the panel-appropriate icon theme.
+
+## c13 — 2026-10-08 — new component: docker-desktop
+
+- New `docker-desktop` (apps): latest official Docker Desktop Ubuntu amd64 DEB,
+  installed from Docker's documented package URL. Adds Docker's signed apt source,
+  QEMU, and `gnome-terminal` prerequisites. Documented first-run agreement and
+  nested-virtualization limitation.
+
+## c14 — 2026-10-08 — new component: docker-engine
+
+- New `docker-engine` (apps): official Docker Engine, CLI, Buildx, and Compose V2
+  plugin from Docker's signed Ubuntu apt repository. Verify the running daemon and
+  run `hello-world` before recording the component.

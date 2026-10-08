@@ -36,6 +36,8 @@ presets:
     - snipaste
     - peazip
     - warp-terminal
+    - docker-desktop
+    - docker-engine
     - node-nvm
     - uv
     - anaconda
@@ -135,6 +137,20 @@ components:
     deps: []
     channel: apt
     summary: Official releases.warp.dev apt repo (stable), GPG-signed; auto-updates with apt. GPU-rendered terminal — uses Mesa llvmpipe under RDP. Login manual.
+
+  - id: docker-desktop
+    name: Docker Desktop
+    group: apps
+    deps: []
+    channel: vendor-deb
+    summary: Official Docker Desktop for Ubuntu amd64 DEB. Requires KVM/QEMU and a supported desktop; Docker does not support nested virtualization.
+
+  - id: docker-engine
+    name: Docker Engine + Compose plugin
+    group: apps
+    deps: []
+    channel: apt
+    summary: Official Docker Engine, CLI, Buildx and Compose V2 plugin from Docker's signed Ubuntu apt repository; managed by the system docker service.
 
   # --- runtime ---
   - id: node-nvm

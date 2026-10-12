@@ -33,7 +33,7 @@ chmod 755 /usr/local/bin/code
 
 # Menu overrides (both desktop entries must be covered)
 mkdir -p /root/.local/share/applications
-for f in code.desktop code-url-handler.desktop; do
+for f in com.microsoft.VSCode.desktop com.microsoft.VSCode.UrlHandler.desktop; do
   cp "/usr/share/applications/$f" "/root/.local/share/applications/$f" 2>/dev/null || continue
   sed -i 's#Exec=/usr/share/code/code#Exec=/usr/local/bin/code#' "/root/.local/share/applications/$f"
 done
@@ -50,3 +50,5 @@ code --version | head -1 && grep -q 'user-data-dir' /usr/local/bin/code
 - The `sha/download?build=stable&os=linux-deb-x64` URL always redirects to the current stable — never pin a VS Code build. (The old `update.code.visualstudio.com/latest/...` path was retired upstream and returns 404 — verified 2026-10-06.)
 - Headless note: `code --version` may print the version to stdout only sporadically over SSH (X/ozone errors go to stderr); `dpkg-query -W code` is the reliable version source for records.
 - On root, missing `--user-data-dir` produces a broken/grey window even with `--no-sandbox` set — both flags are required.
+- Vendor .desktop filenames: the official deb currently ships `com.microsoft.VSCode.desktop` and `com.microsoft.VSCode.UrlHandler.desktop`. Older builds shipped `code.desktop` / `code-url-handler.desktop` — if those names come back or change again, update the Install loop above; the `|| continue` will otherwise silently no-op and the menu will launch the bare `/usr/bin/code` binary as root.
+- The sed override assumes the vendor's `Exec=` line still points at `/usr/share/code/code`; if Microsoft repaths the entry, the override silently no-ops and the menu reverts to the bare binary. If the wrapper at `/usr/local/bin/code` is missing for any reason, the menu entry fails to launch — run Install again to restore it.

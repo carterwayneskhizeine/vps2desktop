@@ -149,3 +149,36 @@ Presets: minimal, remote-desktop, ai-toolkit, full.
   menu entry and session autostart, updating both to the stable Documents path.
 - Add `base-tools` and `xfce-desktop` dependencies for release resolution, icon
   extraction and the graphical desktop integrations.
+
+## c17 — 2026-10-11 — vscode: .desktop override loop updated to current vendor filenames
+
+- vscode: the Install loop's `for f in code.desktop code-url-handler.desktop` no
+  longer matches the vendor .deb. Current vendor filenames are
+  `com.microsoft.VSCode.desktop` and `com.microsoft.VSCode.UrlHandler.desktop`;
+  the loop is updated, and the existing `sed` pattern still matches the vendor's
+  `Exec=/usr/share/code/code` line.
+- Two new Known Pitfalls added: vendor .desktop filenames have changed at least
+  once already (revisit them after future VS Code releases); and the `sed`
+  override silently no-ops if Microsoft repaths the `Exec=` target or if the
+  `/usr/local/bin/code` wrapper is missing — both leave the menu launching the
+  bare binary as root.
+- Hit live on light-node-01 during a 1.140.0 → 1.141.0 upgrade: the wrapper was
+  missing before the upgrade even ran, so the .desktop overrides pointed at a
+  non-existent target. Catalog now records the recovery path.
+
+## c18 — 2026-10-12 — tavily-cli: Known Pitfalls from a live light-node-01 pass
+
+- `--country` requires a valid country name, not an ISO code — verified by a
+  real search request, `CN` returns "Invalid country". Consult the API
+  reference for the supported list before passing the flag.
+- `tvly init [--no-browser]` is the official skill installer for agent hosts
+  (Claude Code / Codex detected automatically); with `--no-browser` it falls
+  back to the `TAVILY_API_KEY` env var. Bundled skills are pinned to the CLI
+  release, so re-run after every CLI upgrade.
+- `tvly login --api-key <key>` persists the API key to `~/.tavily/config.json`
+  (mode 600); preferred over browser OAuth when an API key is already available,
+  since browser OAuth routes through Tavily's MCP endpoint with documented
+  compatibility gaps for some `search` and `research` options.
+- `tvly auth` masks the displayed API key (e.g. `tvly-dev...H2H6`), a useful
+  existence check that does not leak the full secret.
+- All four findings verified live on light-node-01 on 2026-10-12.

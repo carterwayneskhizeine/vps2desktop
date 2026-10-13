@@ -125,6 +125,13 @@ components:
     channel: vendor-deb
     summary: Official VS Code .deb; on root sessions a wrapper with --user-data-dir is installed.
 
+  - id: chatgpt
+    name: ChatGPT desktop
+    group: apps
+    deps: [xfce-desktop]
+    channel: vendor-deb
+    summary: Explicitly selected local amd64 DEB, with root-safe command, menu and trusted desktop launchers. Package manages its vendor APT repository; login is manual.
+
   - id: snipaste
     name: Snipaste (screenshot)
     group: apps

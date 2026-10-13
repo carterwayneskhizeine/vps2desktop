@@ -182,3 +182,13 @@ Presets: minimal, remote-desktop, ai-toolkit, full.
 - `tvly auth` masks the displayed API key (e.g. `tvly-dev...H2H6`), a useful
   existence check that does not leak the full secret.
 - All four findings verified live on light-node-01 on 2026-10-12.
+
+## c19 — 2026-10-14 — new component: chatgpt
+
+- New `chatgpt` (apps): install an explicitly user-selected local amd64 DEB with
+  APT dependency resolution, preserving the requested package version.
+- Add a root-safe command wrapper, per-user menu override and trusted desktop
+  launcher. Verify package status, shared libraries and desktop entries, plus an
+  actual GUI launch when an Xfce session is available. Login remains manual.
+- The component requires a supplied package and is not included in the Full
+  preset. Vendor repository configuration stays managed by the package.

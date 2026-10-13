@@ -186,6 +186,7 @@ const COMPONENTS = [
   {id:"uv",              name:"uv (Python)",             group:"runtime",  deps:[],                 desc:"Astral uv/uvx via official installer"},
   {id:"anaconda",        name:"Anaconda",                group:"runtime",  deps:[],                 desc:"Full Anaconda to /root/anaconda3 (TLS-only; upstream no longer publishes checksums)"},
   {id:"claude-code",     name:"Claude Code",             group:"ai-cli",   deps:[],                 desc:"Anthropic Claude Code, official native installer"},
+  {id:"cyrus",           name:"Cyrus",                   group:"ai-cli",   deps:["base-tools","node-nvm","claude-code"], desc:"Self-hosted Linear coding agent; OAuth, provider credentials and repo setup are manual"},
   {id:"cc-switch-cli",   name:"cc-switch CLI",           group:"ai-cli",   deps:[],                 desc:"Provider/config switcher for Claude Code, Codex, Gemini, OpenCode, Hermes, OpenClaw, pi"},
   {id:"aichat",          name:"aichat",                  group:"ai-cli",   deps:[],                 desc:"All-in-one LLM CLI, static binary from GitHub latest release"},
   {id:"codex",           name:"OpenAI Codex CLI",        group:"ai-cli",   deps:["node-nvm"],       desc:"npm global (@openai/codex)"},
@@ -199,7 +200,7 @@ const ALL = COMPONENTS.map(c => c.id);
 const PRESETS = [
   {key:"minimal",        label:"Minimal",        ids:["base-tools"], hint:"just the foundation toolset"},
   {key:"remote-desktop", label:"Remote Desktop", ids:["base-tools","xfce-desktop","xrdp","xrdp-audio","fcitx5-chinese"], hint:"a GUI you can RDP into"},
-  {key:"ai-toolkit",     label:"AI Toolkit",     ids:["base-tools","node-nvm","uv","claude-code","cc-switch-cli","aichat","codex","opencode","pi","agent-browser","tavily-cli"], hint:"foundation + AI CLIs"},
+  {key:"ai-toolkit",     label:"AI Toolkit",     ids:["base-tools","node-nvm","uv","claude-code","cyrus","cc-switch-cli","aichat","codex","opencode","pi","agent-browser","tavily-cli"], hint:"foundation + AI CLIs"},
   {key:"full",           label:"Full",           ids:ALL, hint:"everything"},
 ];
 

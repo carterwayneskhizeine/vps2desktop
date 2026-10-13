@@ -16,6 +16,7 @@ presets:
     - node-nvm
     - uv
     - claude-code
+    - cyrus
     - cc-switch-cli
     - aichat
     - codex
@@ -43,6 +44,7 @@ presets:
     - uv
     - anaconda
     - claude-code
+    - cyrus
     - cc-switch-cli
     - aichat
     - codex
@@ -196,6 +198,13 @@ components:
     deps: []
     channel: official-script
     summary: curl -fsSL https://claude.ai/install.sh | bash. Login is manual (OAuth).
+
+  - id: cyrus
+    name: Cyrus
+    group: ai-cli
+    deps: [base-tools, node-nvm, claude-code]
+    channel: npm
+    summary: Latest cyrus-ai with guarded config initialization; Linear OAuth, provider credentials and repository setup stay manual. Includes Cloudflare routing and Agent delegation checks.
 
   - id: cc-switch-cli
     name: cc-switch CLI

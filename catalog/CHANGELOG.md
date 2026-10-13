@@ -192,3 +192,16 @@ Presets: minimal, remote-desktop, ai-toolkit, full.
   actual GUI launch when an Xfce session is available. Login remains manual.
 - The component requires a supplied package and is not included in the Full
   preset. Vendor repository configuration stays managed by the package.
+
+## c20 — 2026-10-14 — new component: cyrus
+
+- New `cyrus` (ai-cli): install `cyrus-ai@latest`, initialize config without
+  overwriting existing credentials, and verify the CLI, JSON and permissions.
+  Register dependencies and add the Component to the checklist, AI Toolkit and
+  Full presets.
+- Document the manual Linear OAuth app/authorization and GitHub repository flow,
+  Docker-hosted Cloudflare Tunnel host-gateway routing, read-only functional
+  checks and optional systemd persistence with resolved nvm paths.
+- Capture signature-secret mismatch, missing Agent delegation, and hanging
+  `check-tokens` diagnostics. Explain how Linear's team status categories differ
+  from Agent Session completion, and retain machine-specific facts in Local State.

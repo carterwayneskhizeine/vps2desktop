@@ -220,3 +220,16 @@ Presets: minimal, remote-desktop, ai-toolkit, full.
   running.
 - Not added to any preset — coexists with `vscode` as a per-machine editor
   choice. All steps verified live on light-node-01.
+
+## c22 — 2026-10-14 — new component: notepadplusplus
+
+- New `notepadplusplus` (apps): native Qt6/QScintilla Linux port of Notepad++
+  from the GitHub release deb (github-api channel, always latest). No root
+  guard, no wrapper or menu override needed.
+- The snap of the same name was installed first, then removed: it is
+  strict-confined and `/root` is read-only inside the sandbox (saves fail with
+  Permission denied) — documented as a do-not-use trap for root-managed
+  machines.
+- The deb's Depends omits `libqt6xml6t64`; installed explicitly, same
+  undeclared-runtime trap pattern as peazip's GTK2 (c-series precedent).
+- Verified live on light-node-01: ldd clean, 15 s GUI smoke run as root.

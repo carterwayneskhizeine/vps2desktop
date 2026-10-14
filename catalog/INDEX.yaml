@@ -134,6 +134,13 @@ components:
     channel: snap
     summary: VSCodium snap (classic); root-safe wrapper with --user-data-dir plus per-user overrides of the snapd menu entries. Same vendor root guard as vscode.
 
+  - id: notepadplusplus
+    name: Notepad++ (Linux port)
+    group: apps
+    deps: []
+    channel: github-api
+    summary: Native Qt6 port of Notepad++ from the GitHub release deb — never the snap (strict confinement makes /root read-only); needs explicit libqt6xml6t64.
+
   - id: chatgpt
     name: ChatGPT desktop
     group: apps

@@ -127,6 +127,13 @@ components:
     channel: vendor-deb
     summary: Official VS Code .deb; on root sessions a wrapper with --user-data-dir is installed.
 
+  - id: codium
+    name: VSCodium
+    group: apps
+    deps: []
+    channel: snap
+    summary: VSCodium snap (classic); root-safe wrapper with --user-data-dir plus per-user overrides of the snapd menu entries. Same vendor root guard as vscode.
+
   - id: chatgpt
     name: ChatGPT desktop
     group: apps

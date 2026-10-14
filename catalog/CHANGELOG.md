@@ -205,3 +205,18 @@ Presets: minimal, remote-desktop, ai-toolkit, full.
 - Capture signature-secret mismatch, missing Agent delegation, and hanging
   `check-tokens` diagnostics. Explain how Linear's team status categories differ
   from Agent Session completion, and retain machine-specific facts in Local State.
+
+## c21 — 2026-10-14 — new component: codium
+
+- New `codium` (apps): VSCodium via snap `--classic`, plus a root-safe wrapper
+  injecting `--no-sandbox`/`--user-data-dir` — the snap's vendor launcher guards
+  uid=0 exactly like the VS Code deb (c17), with the same misleading error text.
+- Per-user menu overrides for the snapd-managed entries (`codium_codium.desktop`,
+  `codium_url-handler.desktop`) redirect Exec to the wrapper; the url-handler
+  snap command folds into the same wrapper via arg pass-through.
+- Pitfalls captured: the guard only accepts `--user-data-dir`-class flags (even
+  `codium --version` is blocked as root), benign MESA/ANGLE software-render
+  errors under XRDP, and fast exit-0 forwarding when an instance is already
+  running.
+- Not added to any preset — coexists with `vscode` as a per-machine editor
+  choice. All steps verified live on light-node-01.

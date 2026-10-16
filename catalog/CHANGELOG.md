@@ -335,3 +335,18 @@ Presets: minimal, remote-desktop, ai-toolkit, full.
   OpenSSH 9.6p1) all pass, and `https://webssh.goldie-rill.top/` returns 200 with
   no tunnel errors after the rebind.
 
+## c25 — 2026-10-17 — chrome: pitfall — automation tools bypass the PATH wrapper
+
+- `chrome`: documented that Puppeteer-based automation (notably `chrome-devtools-mcp`)
+  resolves Chrome by absolute path (`/usr/bin/google-chrome` → `/etc/alternatives` →
+  `/opt/google/chrome/google-chrome`) and never sees the `/usr/local/bin` wrapper,
+  so root sessions still die with `crbug.com/638180` despite the wrapper being
+  installed. Consumer-side fix: `--chromeArg=--no-sandbox` in the MCP server launch
+  args (`--headless` too when no display is attached). Claude Code specifics that
+  cost a debugging round: the plugin's effective launch config is the `mcpServers`
+  block in `.claude-plugin/plugin.json`, not the root-level `mcp.json` (cross-tool
+  spec — editing it changes nothing), and a plugin upgrade reinstalls into a new
+  version dir, wiping the patch. Confirmed by `ps`/`/proc/<pid>/cmdline` before and
+  after, and by a live `list_pages` + navigation round-trip after the correct file
+  was patched.
+

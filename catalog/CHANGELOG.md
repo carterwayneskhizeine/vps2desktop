@@ -254,3 +254,84 @@ Presets: minimal, remote-desktop, ai-toolkit, full.
   compatibility untouched; zsh remains the larger upgrade if ever revisited.
 - Not added to any preset — same treatment as `codium` and `notepadplusplus`.
   Verified live on light-node-01 (Guard `active`, 936 completion scripts).
+
+## c24 — 2026-10-17 — new component: webssh
+
+- New `webssh` (apps, uv-tool channel): `uv tool install webssh` from PyPI
+  `webssh`, whose `home_page` is exactly `https://github.com/huashengdun/webssh`
+  — the user-specified upstream. Provides the `wssh` binary; no config file, no
+  daemon package, no build step (Tornado + Paramiko + xterm.js).
+- Deliberately **not** `pip install webssh` into the system interpreter: on these
+  machines `python3` resolves to `/root/anaconda3/bin/python3`, so the install
+  would drop webssh's pinned `paramiko`/`cryptography` wheels into the Anaconda
+  environment. `uv tool` keeps it isolated under
+  `/root/.local/share/uv/tools/webssh`.
+- Deployed as a root systemd unit bound to `172.17.0.1:8127` (user-selected port,
+  replacing the upstream default 8888), enabled at boot, fronted by the user's
+  Cloudflare Tunnel container. Rebinding from `127.0.0.1` was required after the
+  first live 502 — see below.
+- **Security framing recorded in the component**: webssh has no authentication of
+  its own, so any page it serves is an open SSH-credential form. `0.0.0.0` would
+  publish that, and on this machine `ufw` is absent with an ACCEPT INPUT policy,
+  so the wildcard would put it on the public IP. The unit binds a single address.
+- **Headline pitfall — a loopback bind 502s behind a containerized Cloudflare
+  Tunnel.** cloudflared runs in a container with `--add-host
+  host.docker.internal:host-gateway` and therefore dials the Docker bridge gateway
+  `172.17.0.1`, never `127.0.0.1`; the connection is refused by the kernel before
+  webssh sees it (`dial tcp 172.17.0.1:8127: connect: connection refused`). The
+  component's Install now derives the bind address from the terminator's location
+  instead of hard-coding loopback, and its Verify curls the origin *and* the
+  public tunnel hostname. Note the container sits on `172.19.0.0/16` while
+  `host-gateway` still resolves to `172.17.0.1` — the default bridge gateway, not
+  the tunnel network's; read it from the log rather than inferring it.
+- **Sweep sibling routes when one 502s.** The same fault silently affected
+  `aios-light.goldie-rill.top`, whose Vite dev server also binds `127.0.0.1` and
+  had logged 8 identical refusals — it only looked healthy because nobody had
+  requested it. `docker logs cloudflare-tunnel | grep -c 'connect: connection
+  refused'` per origin is the quick triage.
+- **A loopback bind is not a firewall** — recorded so the fix does not slide into
+  `0.0.0.0` on the next machine.
+- Other pitfalls captured from reading `handler.py` and installing live: `--fbidhttp`
+  (default on) 403s plain HTTP from any source whose IP is not `is_private` —
+  which excludes Tailscale's `100.64.0.0/10` CGNAT range, so a Tailscale-bound
+  deployment over plain http fails; the origin check compares the `Origin` netloc
+  to the `Host` header **including port**, so a proxy that rewrites `Host`
+  (Cloudflare `http2Origin: true`, a bad `proxy_set_header Host $host`) yields
+  "Cross origin operation is not allowed."; `--xheaders` default True makes
+  tornado honour `X-Forwarded-Proto` and skip the plain-http branch entirely,
+  which is why the tunnel path works; and `--policy` governs the *outbound* SSH
+  session's host keys, not webssh's own access.
+- Verification traps documented: asset URLs in the served page are relative
+  (`static/js/main.js`), so guessed absolute paths such as `/xterm/css/xterm.css`
+  404 and mimic a broken install; the WebSocket channel is proven by a `101`
+  handshake on `/ws` rather than by a 200, and curl then hangs on the upgraded
+  connection, so that timeout is expected rather than a failure.
+- `--maxconn` is 20 live sessions **per client IP**, which behind a proxy that
+  fronts every session from one bridge gateway is effectively global.
+- **Usage section added** to the component after a live round-trip test: the
+  Hostname field is **resolved by the server**, not the browser. webssh calls
+  `socket.getaddrinfo()` on its own host, so a name that resolves on the user's
+  laptop fails there with `socket.gaierror: [Errno -2] Name or service not known`,
+  surfaced as `Unable to connect to <host>:<port>` — **before authentication**, so a
+  correct password is still rejected and the message misleadingly reads as a
+  credential problem. Test names with `getent hosts <name>` on the server; for the
+  webssh host itself use `127.0.0.1` or the `/etc/hosts` alias `ubuntu` →
+  `127.0.1.1`.
+- **Tailscale MagicDNS rewrites addresses the user types**: `getent hosts
+  38.60.204.237` returns `100.119.149.52 … light-node-01.tail2398a5.ts.net`, so a
+  session intended for the public path can land on the tailnet interface.
+- **`uv tool install` inherited Anaconda as the tool's base interpreter**
+  (`bin/python` → `/root/anaconda3/bin/python3.14`). site-packages are isolated but
+  the stdlib is not — tracebacks mix the venv's `paramiko` with
+  `/root/anaconda3/lib/python3.14/socket.py` and `concurrent/futures/_base.py`.
+  Removing or upgrading Anaconda would break webssh without naming the cause. The
+  decoupling command (`uv tool install --python /usr/bin/python3 --force webssh`,
+  dropping to 3.12) is documented; the user chose to leave the running install
+  alone for now, so light-node-01 still carries the coupling.
+- Not added to any preset — same treatment as `codium`, `notepadplusplus` and
+  `bash-completion`. Verified live on light-node-01: webssh 1.6.3, tornado 6.5.10,
+  paramiko 5.0.0 under Python 3.14; index, assets, `101` upgrade and an
+  in-process paramiko handshake against the local sshd (ssh-ed25519,
+  OpenSSH 9.6p1) all pass, and `https://webssh.goldie-rill.top/` returns 200 with
+  no tunnel errors after the rebind.
+

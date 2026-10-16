@@ -190,6 +190,13 @@ components:
     channel: apt
     summary: Official Docker Engine, CLI, Buildx and Compose V2 plugin from Docker's signed Ubuntu apt repository; managed by the system docker service.
 
+  - id: webssh
+    name: WebSSH (browser SSH client)
+    group: apps
+    deps: [base-tools, uv]
+    channel: uv-tool
+    summary: uv tool install webssh — Tornado + Paramiko + xterm.js SSH-in-the-browser, exposing the `wssh` binary. It has no authentication of its own, so bind a single private address (never 0.0.0.0) and match it to where the TLS terminator lives — a containerized Cloudflare Tunnel dials the Docker bridge gateway 172.17.0.1, not 127.0.0.1, and a loopback bind 502s. --fbidhttp blocks plain HTTP from non-private source IPs (Tailscale 100.x included); the origin check compares Origin netloc to Host including port.
+
   # --- runtime ---
   - id: node-nvm
     name: Node.js via nvm

@@ -233,3 +233,24 @@ Presets: minimal, remote-desktop, ai-toolkit, full.
 - The deb's Depends omits `libqt6xml6t64`; installed explicitly, same
   undeclared-runtime trap pattern as peazip's GTK2 (c-series precedent).
 - Verified live on light-node-01: ldd clean, 15 s GUI smoke run as root.
+
+## c23 — 2026-10-16 — new component: bash-completion
+
+- New `bash-completion` (base): apt `bash-completion` 1:2.11-8, giving the stock
+  `/bin/bash` login shell Tab completion for 936 third-party CLIs (docker, git,
+  systemctl, kubectl). No shell switch, no oh-my-zsh, nothing that affects
+  running services.
+- Installing the package is **not** sufficient on its own: Ubuntu's `~/.bashrc`
+  ships the `. /etc/bash_completion` lines commented out. The component's Install
+  step uncomments them; the Guard checks both halves.
+- Verification trap documented: `complete -p <cmd>` returns "no completion
+  specification" even when working, because the handler is registered as the
+  *default* (`complete -D -F _completion_loader`) and command scripts load
+  lazily on first Tab. `complete -D` also needs `-p`, or it performs a
+  completion instead of printing one. Verify with `bash -ic`, since `~/.bashrc`
+  returns early on `[ -z "$PS1" ]` for non-interactive shells.
+- Chosen over zsh on light-node-01: zsh was installed and rolled back the same
+  day (see the session notes). bash-completion keeps the shell and its script
+  compatibility untouched; zsh remains the larger upgrade if ever revisited.
+- Not added to any preset — same treatment as `codium` and `notepadplusplus`.
+  Verified live on light-node-01 (Guard `active`, 936 completion scripts).

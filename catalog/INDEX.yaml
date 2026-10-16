@@ -62,6 +62,13 @@ components:
     channel: apt
     summary: curl/git/gnupg, archives, build-essential, python3+venv, jq/ripgrep/tmux/htop/rsync, gh, sqlite3, clipboard helpers.
 
+  - id: bash-completion
+    name: bash-completion (Tab completion)
+    group: base
+    deps: []
+    channel: apt
+    summary: Programmable Tab completion for the stock bash login shell — 936 third-party CLI scripts (docker/git/systemctl/kubectl). Requires uncommenting the sourcing block in ~/.bashrc; installing the package alone does nothing.
+
   - id: fail2ban
     name: fail2ban (sshd jail)
     group: base

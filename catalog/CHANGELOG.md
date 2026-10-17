@@ -398,3 +398,20 @@ Presets: minimal, remote-desktop, ai-toolkit, full.
   four sessions (aios / canvas / cyrus / temp) intact, and copy-mode
   copy → paste exercised in a throwaway session (`pane_in_mode` 1 → 0, buffer
   content correct, both before and after the `v`/`y` rebind).
+## c27 — 2026-10-17 — new optional component: mmx-cli
+
+- Added `catalog/mmx-cli.md` and registered the `mmx-cli` component in
+  `catalog/INDEX.yaml` (group `ai-cli`, channel `npm`, deps `[node-nvm]`).
+- Component is intentionally **not** added to any preset (`minimal` /
+  `remote-desktop` / `ai-toolkit` / `full`); users opt in explicitly. Rationale:
+  mmx is a MiniMax-specific CLI that requires its own auth flow, and most
+  vps2desktop deployments don't use MiniMax directly.
+- npm package name is **`mmx-cli`** (CLI exposes the `mmx` binary); the same
+  `for d in /root/.nvm/versions/node/*/bin; do PATH="$d:$PATH"; done` install
+  pattern as codex / opencode / pi / agent-browser, including the npm ≥ 12
+  `--allow-scripts=mmx-cli` note.
+- Verified on light-node-01 against npm registry at install time: latest
+  version is `1.0.28`, dependency tree pulls 33 packages, no native build step,
+  binary ships prebuilt. Postinstall was non-blocking on this Node but the
+  guard flag is documented for parity with the other Node CLIs.
+

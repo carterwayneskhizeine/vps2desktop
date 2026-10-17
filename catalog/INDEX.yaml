@@ -276,6 +276,13 @@ components:
     channel: npm
     summary: npm i -g agent-browser, then agent-browser install --with-deps (downloads browser binaries; ffmpeg optional).
 
+  - id: mmx-cli
+    name: MiniMax CLI (mmx)
+    group: ai-cli
+    deps: [node-nvm]
+    channel: npm
+    summary: npm i -g mmx-cli — MiniMax's official CLI for text/image/video/speech/vision/search and quota. Authentication (OAuth or API key) is manual.
+
   - id: tavily-cli
     name: tavily-cli (tvly)
     group: ai-cli

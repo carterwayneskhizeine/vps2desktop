@@ -350,3 +350,51 @@ Presets: minimal, remote-desktop, ai-toolkit, full.
   after, and by a live `list_pages` + navigation round-trip after the correct file
   was patched.
 
+
+## c26 — 2026-10-17 — browser-terminal copy/paste: why Ctrl+C/V cannot copy, and the tmux recipe
+
+- `webssh`: new **Clipboard** section. Ctrl+C / Ctrl+V never copy or paste in a
+  webssh terminal, and the cause is xterm.js rather than tmux or the pane. The
+  bundled `xterm.min.js` `_keyDown` calls `triggerDataEvent(t.key)` and then
+  `cancel(ev, true)` for every translated key, so `0x03` / `0x16` go to the
+  server while the browser's native copy/paste default action is suppressed.
+  Recorded the two follow-on facts that make this a dead end rather than a
+  mis-setting: xterm.js ships no copy implementation and defaults to
+  `rendererType:"canvas"` (no DOM selection, so the context menu offers "Copy
+  image"), and it has no OSC 52 support at all (`grep -c 'osc52\|setClipboard'`
+  = 0), so `set-clipboard on` cannot reach the browser clipboard. Noted that the
+  chords are not inert in a raw-mode TUI either — Claude Code reads `0x03` as
+  *cancel* and `0x16` as *paste image*. Documented the client-side
+  `attachCustomKeyEventHandler` patch as the only route to the system clipboard,
+  with the warning that its paste half is unproven (Chrome blocks
+  `execCommand('paste')`, `navigator.clipboard` is undefined off a secure
+  context) and that `uv tool upgrade webssh` overwrites the patched assets.
+- `base-tools`: new **tmux configuration** section carrying the full
+  `~/.tmux.conf` (with an idempotency guard that timestamps a backup of any
+  existing config), an apply step via `tmux source-file` that needs no session
+  restart, and a verify loop. `mouse on` + `mode-keys vi` move copying into tmux
+  copy-mode, where drag / double-click / triple-click all copy on release —
+  those three bindings already exist in tmux 3.4, so no `bind` is needed for
+  them. `set-clipboard on` additionally wires OSC 52 on native terminals and is
+  documented as a no-op in the browser; `history-limit 50000` because agent/TUI
+  output outgrows the 2000-line default.
+- `base-tools` pitfall: **this machine's tmux 3.4 `copy-mode-vi` table does not
+  match the usual documentation.** Measured — `v` is `rectangle-toggle`, and `y`
+  has no binding at all, so selecting a line and pressing `y` leaves the session
+  in copy-mode with an unchanged buffer. The real keys are `Space` (begin) and
+  `Enter` (copy). The shipped config rebinds `v` / `y` to the familiar behaviour,
+  keeping rectangular selection on `C-v`; verify with
+  `tmux list-keys -T copy-mode-vi | grep -E ' (v|y) '` instead of trusting a
+  tutorial. Also documented that `set -g mouse on` is server-wide (scope per
+  session with `set -w`) and that key-table changes take effect immediately
+  while mouse *negotiation* needs a re-attach (`prefix d`, `tmux a`).
+- Correction: a prior note claimed a webssh "keymap addon adds Ctrl+C/CtrlV
+  clipboard behavior". No such code existed — `static/` held only the stock
+  `xterm.min.js` + `main.js`, `main.js` had no keydown/clipboard handling, and
+  neither `catalog/webssh.md` nor the c24 entry mentioned it. The requirement is
+  now recorded honestly as an unimplemented client-side patch with its caveats.
+- `INDEX.yaml` summaries for both components extended to match. Verified live on
+  light-node-01 on 2026-10-17: config loaded into the running server with all
+  four sessions (aios / canvas / cyrus / temp) intact, and copy-mode
+  copy → paste exercised in a throwaway session (`pane_in_mode` 1 → 0, buffer
+  content correct, both before and after the `v`/`y` rebind).

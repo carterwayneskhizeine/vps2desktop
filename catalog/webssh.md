@@ -41,6 +41,66 @@ and every request 502s. Bind the bridge gateway in that case; bind `127.0.0.1`
 only when the terminator runs on the host (nginx, `tailscale serve`) or you
 front it with an SSH tunnel. See Pitfalls.
 
+## Clipboard: Ctrl+C and Ctrl+V never copy or paste
+
+Nothing in a webssh terminal can be copied with <kbd>Ctrl</kbd>+<kbd>C</kbd> or
+pasted with <kbd>Ctrl</kbd>+<kbd>V</kbd>. This is **xterm.js** — not tmux, and
+not whatever runs in the pane. `Terminal._keyDown` in the bundled `xterm.min.js`
+translates the key, ships it to the server, then cancels the browser event:
+
+```js
+this._coreService.triggerDataEvent(t.key,!0),   // 0x03 / 0x16 go to the server
+this.optionsService.options.screenReaderMode?void(...):this.cancel(e,!0)  // preventDefault + stopPropagation
+```
+
+`cancel(ev, true)` runs for **every** translated key, so the browser's native
+copy/paste default action is suppressed before it can happen. Two consequences:
+
+- **xterm.js has no copy implementation of its own.** Dragging selects inside
+  xterm.js's own buffer, not a DOM selection, so the browser has nothing to copy
+  from — and the default `rendererType:"canvas"` puts no selectable text in the
+  DOM at all. The browser context menu offers "Copy image", not "Copy".
+- **No OSC 52 either.** `grep -c 'osc52\|setClipboard' xterm.min.js` returns
+  **0**, so tmux's `set-clipboard on` cannot push a tmux buffer into the browser
+  clipboard. Copying stops at the tmux buffer.
+
+In a raw-mode TUI those bytes are not inert either: Claude Code reads `0x03` as
+*cancel the current operation* and `0x16` as *paste image / verbatim*, so the
+chords feel alive while doing something else entirely.
+
+This is independent of tmux. With no tmux in the path, `0x03` reaches the shell,
+the line discipline turns it into SIGINT and kills the foreground process — also
+not a copy. A native terminal emulator (gnome-terminal, iTerm, Windows Terminal)
+binds those chords *client-side* and therefore works with or without tmux; that
+is a property of the client, not of the session.
+
+**Do instead:** copy through tmux copy-mode — see the tmux configuration section
+in `base-tools`. Getting text into the *system* clipboard (to paste in another
+browser tab or another machine) needs a client-side patch:
+
+```js
+// webssh/static/js/main.js, right after `var term = new window.Terminal(...)`
+term.attachCustomKeyEventHandler(function(ev) {
+  if (ev.ctrlKey && !ev.shiftKey && ev.keyCode === 67) {      // Ctrl+C
+    var sel = term.getSelection();
+    if (sel) {
+      var ta = document.createElement('textarea');
+      ta.value = sel; document.body.appendChild(ta);
+      ta.select(); document.execCommand('copy');
+      document.body.removeChild(ta);
+    }
+    return false;                                              // don't send 0x03
+  }
+  return true;
+});
+```
+
+The copy direction is reliable; the **paste direction is not** — Chrome blocks
+`document.execCommand('paste')`, and `navigator.clipboard` is `undefined`
+outside a secure context. Do not promise Ctrl+V from a browser patch; verify it
+in a real browser before documenting it as working. Patching the static assets
+also means re-applying it after `uv tool upgrade webssh` overwrites them.
+
 ## Guard (idempotency)
 
 ```bash
@@ -162,6 +222,10 @@ Record the version only after every command above passes.
 
 ## Known Pitfalls
 
+- **Ctrl+C / Ctrl+V never copy or paste** — xterm.js `preventDefault()`s both and
+  ships `0x03` / `0x16` to the remote instead, with no clipboard support of its
+  own (no OSC 52, canvas renderer, no DOM selection). Looks like a tmux problem
+  and is not one. Copy via tmux copy-mode; see `base-tools`.
 - **The Hostname field is resolved by the *server*, not the browser.** webssh runs
   `getaddrinfo()` on its own host, so a name that resolves on your laptop fails here
   with `socket.gaierror: [Errno -2] Name or service not known`, surfaced as

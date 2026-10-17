@@ -60,7 +60,7 @@ components:
     group: base
     deps: []
     channel: apt
-    summary: curl/git/gnupg, archives, build-essential, python3+venv, jq/ripgrep/tmux/htop/rsync, gh, sqlite3, clipboard helpers.
+    summary: curl/git/gnupg, archives, build-essential, python3+venv, jq/ripgrep/tmux/htop/rsync, gh, sqlite3, clipboard helpers. Also ships the ~/.tmux.conf recipe that makes copy-mode work in browser terminals, where Ctrl+C/Ctrl+V cannot copy at all (see webssh); note tmux 3.4 binds v/y differently than the docs suggest.
 
   - id: bash-completion
     name: bash-completion (Tab completion)
@@ -195,7 +195,7 @@ components:
     group: apps
     deps: [base-tools, uv]
     channel: uv-tool
-    summary: uv tool install webssh — Tornado + Paramiko + xterm.js SSH-in-the-browser, exposing the `wssh` binary. It has no authentication of its own, so bind a single private address (never 0.0.0.0) and match it to where the TLS terminator lives — a containerized Cloudflare Tunnel dials the Docker bridge gateway 172.17.0.1, not 127.0.0.1, and a loopback bind 502s. --fbidhttp blocks plain HTTP from non-private source IPs (Tailscale 100.x included); the origin check compares Origin netloc to Host including port.
+    summary: uv tool install webssh — Tornado + Paramiko + xterm.js SSH-in-the-browser, exposing the `wssh` binary. It has no authentication of its own, so bind a single private address (never 0.0.0.0) and match it to where the TLS terminator lives — a containerized Cloudflare Tunnel dials the Docker bridge gateway 172.17.0.1, not 127.0.0.1, and a loopback bind 502s. --fbidhttp blocks plain HTTP from non-private source IPs (Tailscale 100.x included); the origin check compares Origin netloc to Host including port. Ctrl+C/Ctrl+V never copy or paste in it — xterm.js preventDefaults both, ships 0x03/0x16 to the remote instead, has no OSC 52 and renders with canvas — copy through tmux copy-mode (base-tools).
 
   # --- runtime ---
   - id: node-nvm

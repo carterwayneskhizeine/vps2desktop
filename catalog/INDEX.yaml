@@ -283,6 +283,13 @@ components:
     channel: npm
     summary: npm i -g mmx-cli — MiniMax's official CLI for text/image/video/speech/vision/search and quota. Authentication (OAuth or API key) is manual.
 
+  - id: browser-mcp
+    name: Browser MCP (sandboxed)
+    group: ai-cli
+    deps: [chrome, node-nvm, claude-code]
+    channel: npm
+    summary: The playwright and chrome-devtools MCP servers run as a dedicated unprivileged account, so Chrome keeps its kernel-level sandbox instead of needing --no-sandbox on a root-managed VPS (which would let a hostile page reach the root-owned host). Ships the setpriv launcher scripts, the plugin-config patch, and the one-command repair skill that survives plugin auto-upgrades wiping the fix.
+
   - id: tavily-cli
     name: tavily-cli (tvly)
     group: ai-cli

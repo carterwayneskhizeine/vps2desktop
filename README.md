@@ -26,6 +26,8 @@ For day-to-day updates: `git pull`, then ask your agent to *check updates* — i
 
 Everything in `catalog/` is optional and selectable. Highlights: Xfce + xrdp with working audio (PipeWire), fcitx5 Chinese input, Chrome / VS Code (root-safe wrappers), Snipaste (screenshot, autostarts), PeaZip (with Thunar right-click actions), Warp terminal, nvm+Node LTS / uv / Anaconda, and the AI CLI set: Claude Code, Codex, OpenCode, pi, cc-switch, aichat, agent-browser, tavily.
 
+[Browser MCP](catalog/browser-mcp.md) runs the playwright and chrome-devtools MCP servers as an unprivileged account, so Chrome keeps its kernel-level sandbox on a root-managed box instead of needing `--no-sandbox`.
+
 [Cyrus](catalog/cyrus.md) is available in the AI Toolkit and Full presets for
 self-hosted Linear task automation. Its Component guide covers initialization,
 Cloudflare Tunnel routing, manual OAuth/provider setup, repository access, issue

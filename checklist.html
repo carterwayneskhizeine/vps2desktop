@@ -194,6 +194,7 @@ const COMPONENTS = [
   {id:"pi",              name:"pi coding agent",         group:"ai-cli",   deps:["node-nvm"],       desc:"npm global (@earendil-works/pi-coding-agent)"},
   {id:"agent-browser",   name:"agent-browser",           group:"ai-cli",   deps:["node-nvm"],       desc:"Browser automation CLI + managed browser binaries"},
   {id:"tavily-cli",      name:"tavily-cli (tvly)",       group:"ai-cli",   deps:["uv"],             desc:"Tavily search CLI as a uv tool (key is manual)"},
+  {id:"browser-mcp",     name:"Browser MCP (sandboxed)", group:"ai-cli",   deps:["chrome","node-nvm","claude-code"], desc:"playwright + chrome-devtools MCP servers run unprivileged, so Chrome keeps its kernel sandbox — no --no-sandbox"},
 ];
 
 const ALL = COMPONENTS.map(c => c.id);

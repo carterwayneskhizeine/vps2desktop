@@ -415,3 +415,45 @@ Presets: minimal, remote-desktop, ai-toolkit, full.
   binary ships prebuilt. Postinstall was non-blocking on this Node but the
   guard flag is documented for parity with the other Node CLIs.
 
+
+## c28 — 2026-10-19 — new optional component: browser-mcp (sandboxed browser MCP servers)
+
+- Added `catalog/browser-mcp.md` and registered the `browser-mcp` component in
+  `catalog/INDEX.yaml` (group `ai-cli`, channel `npm`, deps
+  `[chrome, node-nvm, claude-code]`).
+- Component is intentionally **not** added to any preset (`minimal` /
+  `remote-desktop` / `ai-toolkit` / `full`), following the `mmx-cli` precedent
+  (c27). Rationale: it only matters for Claude Code users, it pulls in `chrome`,
+  and it replaces a working-but-unsafe `--no-sandbox` configuration with a
+  different privilege model — a security decision the user should opt into.
+- **Why**: on a root-managed VPS Chrome refuses to start as root
+  (crbug.com/638180). The workaround carried since c25 was
+  `--chromeArg=--no-sandbox` for `chrome-devtools-mcp`, which disables the
+  browser's kernel-level protections: a hostile page can then reach the
+  root-owned host. The component instead starts both MCP servers as a dedicated
+  unprivileged account via `setpriv`, so Chrome keeps its real sandbox — the
+  kernel provides user namespaces and Chrome's own `chrome_sandbox` is setuid
+  root, so no flag is needed at all.
+- The run account is `browsermcp`, deliberately **not** `ubuntu`: most Ubuntu
+  cloud images ship a vendor `ubuntu` login user, and Rootify (ADR-0003)
+  requires leaving that account untouched. It is created passwordless; give it
+  a password only for hand-inspection, never in the manifest (ADR-0002).
+- Two config locations, verified live: `playwright` is configured by the
+  `.mcp.json` next to the plugin manifest (its `plugin.json` carries no embedded
+  `mcpServers`), while `chrome-devtools` is configured by the embedded
+  `mcpServers` in `.claude-plugin/plugin.json`. The root-level `mcp.json` is the
+  agent-plugins.org cross-tool spec that Claude Code ignores — the component
+  patches it anyway so switching clients later does not land on a broken config.
+- Both plugins auto-upgrade into a fresh version directory holding a clean,
+  unpatched config, which silently re-breaks the browser. The component installs
+  the `browser-mcp-root-ns` skill with a one-command repair script
+  (`bash ~/.claude/skills/browser-mcp-root-ns/scripts/repair-browser-mcp.sh`)
+  plus the mandatory `/reload-plugins` step.
+- Supporting details the component has to carry: the run account cannot read
+  `/root/.npm` (own `npm_config_cache`), `/root/.Xauthority` is 600 root (own
+  copy, or the launcher falls back to `--headless`), the Node path under nvm
+  must not be hardcoded, and `playwright` resolves explicitly named output
+  files against the root-owned workspace (hence `--output-dir`).
+- `catalog/chrome.md` now points at this component instead of recommending
+  `--no-sandbox` for the agent-driven browser. The desktop wrapper's
+  `--no-sandbox` for root *desktop* sessions is a separate case and stays.

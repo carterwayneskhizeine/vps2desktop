@@ -57,6 +57,23 @@ Both MCP servers are started through a launcher that drops privileges with `setp
 launcher stays root so the runtime identity can be re-pointed later without touching the
 plugin config.
 
+The launchers run `npx` from the nvm-managed Node under `/root/.nvm`, so the run
+account has to be able to *traverse* `/root` to reach it. A stock `/root` is mode
+`700` and the run account gets `npx: Permission denied`. Widen the directory to
+`711` — traversable, still not listable — and make sure the Node tree itself is
+world-readable:
+
+```bash
+chmod 711 /root                       # o+x only: no listing
+chmod 755 /root/.nvm /root/.nvm/versions
+```
+
+A named-user POSIX ACL (`setfacl -m u:<run user>:rx /root`) is the narrower
+alternative — it grants exactly one account traversal and nobody else. Either
+way, verify the result in both directions: the run account must be able to
+execute `/root/.nvm/versions/node/*/bin/node`, and must **not** be able to
+`ls /root`.
+
 ```bash
 install -d -m 0755 /root/.claude/mcp-wrappers
 
@@ -414,13 +431,31 @@ chmod 0755 /root/.claude/skills/browser-mcp-root-ns/scripts/repair-browser-mcp.s
 
 ### 4. The Claude Code plugins
 
+Claude Code ships only the built-in `anthropic-plugin-directory` marketplace. The
+`claude-plugins-official` marketplace — the one carrying both browser plugins,
+and the layout this Component's repair script expects — has to be added
+explicitly (measured 2026-10-20 on Claude Code 2.1.303, where
+`claude plugin install playwright@claude-plugins-official` failed with
+*"Plugin 'playwright' not found in marketplace 'claude-plugins-official'"*).
+
 ```bash
+# The marketplace is a GitHub repo; adding it clones it into
+# /root/.claude/plugins/marketplaces/claude-plugins-official.
+claude plugin marketplace add anthropics/claude-plugins-official
+
 claude plugin install playwright@claude-plugins-official
 claude plugin install chrome-devtools-mcp@claude-plugins-official
 claude plugin enable chrome-devtools-mcp@claude-plugins-official || true
 ```
 
 Both commands are idempotent (`already installed` / `already enabled` on a repeat run).
+`claude plugin marketplace add` is idempotent too — it reports *"Marketplace
+already exists"* on a repeat run.
+
+If a plugin was previously installed from the built-in `anthropic-plugin-directory`
+(the same plugin, different listing), the CLI refuses to install it again and asks
+for `--replace`; pass `--replace` so the plugin lands under
+`cache/claude-plugins-official/`, where the repair script looks for it.
 
 ### 5. Point the plugin configs at the launchers
 
@@ -547,6 +582,21 @@ ps -eo user,args | grep "[c]hrome" | grep -v "^root" ||
 
 ## Known Pitfalls
 
+- **The run account cannot reach Node through a stock `/root`.** The launchers
+  run `npx` from `/root/.nvm/versions/node/*/bin`, but a stock `/root` is mode
+  `700`, so the unprivileged account gets `env: 'npx': Permission denied` and
+  every MCP server fails to start. Widen `/root` to `711` (traversable, not
+  listable — the arrangement light-node-01 already uses) or grant a named-user
+  ACL. Check both directions: the run account must execute `node`, and must
+  still fail to `ls /root`.
+- **`claude-plugins-official` is not built in any more.** Claude Code 2.1.303
+  exposes only the built-in `anthropic-plugin-directory`, so the plugin install
+  fails with *"Plugin 'playwright' not found in marketplace
+  'claude-plugins-official'"* until the marketplace is added from
+  `github.com/anthropics/claude-plugins-official`. The built-in directory does
+  carry `playwright`, but it installs under
+  `cache/anthropic-plugin-directory/…` — a path the repair script does not scan
+  — so the plugin ends up unpatched. Add the marketplace and install from it.
 - **Do not reach for `--no-sandbox`.** It is what the `chrome` component's desktop wrapper uses
   for a human-facing browser in a root desktop session — a different case, documented there.
   For an agent-driven browser it disables the kernel protections that keep a hostile page away

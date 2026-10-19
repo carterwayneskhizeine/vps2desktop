@@ -89,7 +89,7 @@ components:
     group: desktop
     deps: []
     channel: apt
-    summary: Xfce 4 session/panel/terminal plus dbus-x11 and Noto CJK fonts. Live-session procedure ensures a status tray while preserving panel items.
+    summary: Xfce 4 session/panel/terminal plus dbus-x11 and Noto CJK fonts. Live-session procedure ensures a status tray while preserving panel items. Verify reads the version from dpkg — xfce4-terminal --version needs an X display and aborts headless.
 
   - id: xrdp
     name: xrdp remote desktop
@@ -203,7 +203,7 @@ components:
     group: runtime
     deps: []
     channel: official-script
-    summary: Latest nvm via install script, latest Node LTS, pnpm via npm. Non-interactive PATH discipline required.
+    summary: Latest nvm via install script, latest Node LTS, pnpm via npm. Non-interactive PATH discipline required — the node bin dir must be on PATH *before* calling npm, or nvm install leaves npm unfound.
 
   - id: uv
     name: uv (Python)
@@ -288,7 +288,7 @@ components:
     group: ai-cli
     deps: [chrome, node-nvm, claude-code]
     channel: npm
-    summary: The playwright and chrome-devtools MCP servers run as a dedicated unprivileged account, so Chrome keeps its kernel-level sandbox instead of needing --no-sandbox on a root-managed VPS (which would let a hostile page reach the root-owned host). Ships the setpriv launcher scripts, the plugin-config patch, and the one-command repair skill that survives plugin auto-upgrades wiping the fix.
+    summary: The playwright and chrome-devtools MCP servers run as a dedicated unprivileged account, so Chrome keeps its kernel-level sandbox instead of needing --no-sandbox on a root-managed VPS (which would let a hostile page reach the root-owned host). Ships the setpriv launcher scripts, the plugin-config patch, and the one-command repair skill that survives plugin auto-upgrades wiping the fix. Claude Code 2.1.303 no longer ships the claude-plugins-official marketplace built in — add it from github.com/anthropics/claude-plugins-official first. /root must be mode 711 so the run account can traverse to the nvm Node tree.
 
   - id: tavily-cli
     name: tavily-cli (tvly)

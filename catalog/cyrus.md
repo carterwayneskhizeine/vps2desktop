@@ -284,6 +284,14 @@ process is not proof of reboot persistence.
 
 ## Known Pitfalls
 
+- **npm ≥ 12 blocks postinstall scripts, including transitive ones.** `cyrus-ai`
+  pulls `cloudflared`, whose postinstall fetches the cloudflared binary; npm
+  warns `install-scripts … cloudflared@… (postinstall: node scripts/postinstall.mjs
+  && node lib/cloudflared.js bin install)` and skips it. Rerun with
+  `--allow-scripts=cyrus-ai --allow-scripts=cloudflared`. A clean install shows
+  no `npm warn install-scripts` lines. The binary lands inside the package
+  directory, not on `PATH` — that is expected; the Component's tunnel is
+  external.
 - **`Invalid webhook signature`**: verify that the app's Webhook Signing Secret
   was copied into `LINEAR_WEBHOOK_SECRET`, with no placeholder or accidental
   whitespace. OAuth authorization can succeed while this independent secret is

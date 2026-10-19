@@ -90,11 +90,20 @@ and [Status Notifier integration](https://docs.xfce.org/panel-plugins/xfce4-stat
 ## Verify
 
 ```bash
-dpkg -s xfce4 | grep -q 'Status: install ok installed' && xfce4-terminal --version 2>/dev/null | head -1
+for p in xfce4 xfce4-terminal dbus-x11 fonts-noto-cjk; do
+  test "$(dpkg-query -W -f='${Status}' "$p")" = 'install ok installed' || exit 1
+done
+dpkg-query -W -f='xfce4 ${Version}\n' xfce4
 ```
 
 ## Known Pitfalls
 
+- **`xfce4-terminal --version` needs an X display.** On a console-only VPS (no
+  DISPLAY) GTK aborts at init with `cannot open display:` and exits 1 *before*
+  printing the version, so the old Verify line produced empty output and looked
+  like a failed install even though every package was installed. Read the version
+  from `dpkg-query -W -f='${Version}' xfce4` instead — it is headless-safe and is
+  what sibling machines record (ovh: `xfce4 4.20.1`).
 - This only installs the desktop; remote access comes from the `xrdp` component.
 - ~400+ packages with dependencies on a minimal image — expected, not an error.
 - Input methods can keep working even when their icons are absent: check that

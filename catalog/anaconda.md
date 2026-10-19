@@ -43,6 +43,9 @@ rm -f "$INSTALLER"
 
 ## Known Pitfalls
 
-- ~500 MB–1.2 GB download — on slow links budget several minutes; retry with `--retry` rather than switching mirrors.
+- ~1.1 GB download and ~7 GB installed (measured 2026-10-20 on a fresh Ubuntu
+  26.04: `Anaconda3-2026.07-1-Linux-x86_64.sh`, 1.14 GB installer, 6.9 GB in
+  `/root/anaconda3`) — on slow links budget several minutes; retry with
+  `--retry` rather than switching mirrors.
 - `-b` (batch) installs **without** running `conda init` — step 3 does it explicitly; the resulting `.bashrc` block only loads in interactive shells (absolute path `/root/anaconda3/bin/conda` over SSH).
 - Upstream no longer publishes `.sha256` checksum files in the archive (removed sometime before 2026-10-06; the old fallback-one-version advice is obsolete). Integrity rests on HTTPS to `repo.anaconda.com` only; if checksums return in any form, reinstate verification.

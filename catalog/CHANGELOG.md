@@ -473,3 +473,45 @@ Presets: minimal, remote-desktop, ai-toolkit, full.
 - Found during the first real tool-call pass on light-node-01: navigation,
   snapshot and a full chrome-devtools a11y tree all worked, but
   `browser_take_screenshot` with an explicit filename did not.
+
+## c30 — 2026-10-20 — fixes from the contabo deploy (Ubuntu 26.04)
+
+- xfce-desktop: the Verify line `xfce4-terminal --version` needs an X display —
+  on a console-only VPS GTK aborts at init with `cannot open display:` and
+  exits 1 *before* printing the version, so Verify produced empty output and
+  read as a failed install even though all four packages were installed
+  correctly. The Verify now checks the four package states and reads the
+  version from `dpkg-query -W -f='${Version}' xfce4`, which is headless-safe
+  and is what sibling machines record (ovh: `xfce4 4.20.1`).
+- node-nvm: `nvm install --lts` does not export the node bin dir into the
+  calling shell, so the Install block's own `npm install -g npm@latest pnpm`
+  failed with `npm: command not found` — Node was on disk but npm was not on
+  PATH. The block now puts the bin dir on PATH before the npm call, and the
+  pitfall spells the trap out for the downstream npm components.
+- browser-mcp: Claude Code 2.1.303 no longer ships the `claude-plugins-official`
+  marketplace built in. `claude plugin install playwright@claude-plugins-official`
+  failed with *"Plugin 'playwright' not found in marketplace
+  'claude-plugins-official'"*, and the repair script's cache paths
+  (`cache/claude-plugins-official/…`) had nothing to patch. The Install block
+  now adds the marketplace from `github.com/anthropics/claude-plugins-official`
+  first. The built-in `anthropic-plugin-directory` does carry `playwright`, but
+  it installs under a path the repair script does not scan, so a plugin taken
+  from there stays unpatched — install from `claude-plugins-official`, with
+  `--replace` when the CLI reports the plugin as already present from the other
+  listing.
+- pi, cyrus: npm ≥ 12 blocks postinstall scripts, and the *transitive*
+  packages are warned about separately from the direct one — pi pulls
+  `protobufjs` and `@google/genai`, cyrus-ai pulls `cloudflared`. Naming only
+  the direct package in `--allow-scripts` leaves those blocked. Both components
+  now name every package.
+- anaconda: the pitfall's size estimate was low. Measured 2026-10-20 on a
+  fresh Ubuntu 26.04: `Anaconda3-2026.07-1-Linux-x86_64.sh` is a 1.14 GB
+  download and `/root/anaconda3` ends up at 6.9 GB.
+- browser-mcp: the launchers run `npx` from the nvm-managed Node under
+  `/root/.nvm`, but a stock `/root` is mode `700` — the unprivileged run account
+  got `env: 'npx': Permission denied` and no MCP server could start. The Install
+  block now widens `/root` to `711` (traversable, still not listable — the
+  arrangement light-node-01 already uses) and makes the Node tree
+  world-readable, with a named-user POSIX ACL documented as the narrower
+  alternative. The pitfall asks for the check in both directions: the run
+  account must execute `node`, and must still fail to `ls /root`.

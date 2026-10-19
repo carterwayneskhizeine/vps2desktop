@@ -457,3 +457,19 @@ Presets: minimal, remote-desktop, ai-toolkit, full.
 - `catalog/chrome.md` now points at this component instead of recommending
   `--no-sandbox` for the agent-driven browser. The desktop wrapper's
   `--no-sandbox` for root *desktop* sessions is a separate case and stays.
+
+## c29 — 2026-10-20 — browser-mcp: let the run account write to the workspace root
+
+- The launchers now grant the run account access to the workspace directory — the
+  directory Claude Code was started in — with a POSIX ACL
+  (`setfacl -m u:<run user>:rwx <workspace>`). Without it a named screenshot
+  failed with `EACCES: permission denied`: the MCP resolves explicitly named
+  output files against the workspace root, and `--output-dir` only covers
+  automatically named ones.
+- Additive and scoped to the one unprivileged account; undo with
+  `setfacl -x u:<run user> <dir>`. The launcher skips it when `setfacl` is
+  missing (package `acl`, now installed by the component), in which case named
+  outputs keep failing and the filename should be omitted instead.
+- Found during the first real tool-call pass on light-node-01: navigation,
+  snapshot and a full chrome-devtools a11y tree all worked, but
+  `browser_take_screenshot` with an explicit filename did not.

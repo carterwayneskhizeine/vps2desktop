@@ -84,6 +84,16 @@ fi
 
 OUT_DIR="${RUN_HOME}/playwright-out"
 install -d -o "${RUN_USER}" -g "${RUN_USER}" -m 0755 "${OUT_DIR}"
+# The MCP resolves explicitly named output files against the workspace root --
+# the directory Claude Code was started in. That directory belongs to root, and
+# the run account cannot write there, so a named screenshot fails with EACCES.
+# Grant the run account access to that one directory: additive, scoped to the
+# run user only. Undo with `setfacl -x u:<run user> <dir>`.
+WORKSPACE="$(pwd)"
+if [ -n "${WORKSPACE}" ] && [ -d "${WORKSPACE}" ] && command -v setfacl >/dev/null 2>&1; then
+	setfacl -m "u:${RUN_USER}:rwx" "${WORKSPACE}" 2>/dev/null || true
+fi
+
 cd "${RUN_HOME}"
 
 # A display is only usable when the X socket exists and we hold its cookie;
@@ -162,6 +172,16 @@ if [ -n "${DISPLAY:-}" ] && [ -S "/tmp/.X11-unix/X${DISPLAY##*:}" ] && [ -r "${R
 else
 	browser_args+=(--headless)
 	unset DISPLAY
+fi
+
+# The MCP resolves explicitly named output files against the workspace root --
+# the directory Claude Code was started in. That directory belongs to root, and
+# the run account cannot write there, so a named screenshot fails with EACCES.
+# Grant the run account access to that one directory: additive, scoped to the
+# run user only. Undo with `setfacl -x u:<run user> <dir>`.
+WORKSPACE="$(pwd)"
+if [ -n "${WORKSPACE}" ] && [ -d "${WORKSPACE}" ] && command -v setfacl >/dev/null 2>&1; then
+	setfacl -m "u:${RUN_USER}:rwx" "${WORKSPACE}" 2>/dev/null || true
 fi
 
 cd "${RUN_HOME}"
@@ -281,6 +301,14 @@ claude mcp list                                                            # 解
 重载后用任意浏览器工具打开一个真实站点（如 `https://example.com`），应能拿到
 Page URL 和 Page Title；再用 `ps -eo user,args | grep "[c]hrome"` 确认 chrome 进程
 属运行用户且没有 `--no-sandbox`。
+
+## 已知限制
+
+- **带文件名的截图会 EACCES**：MCP 把显式文件名的输出解析到 workspace root（Claude Code
+  启动目录），而它属 root，运行用户写不进去；`--output-dir` 只管自动命名的文件。
+  启动脚本会用 POSIX ACL 授权（`setfacl -m u:<run user>:rwx <workspace>`，可用
+  `setfacl -x u:<run user> <dir>` 撤销）；缺 `setfacl` 时就不给文件名，产物落在
+  `--output-dir`。
 SKILL_EOF
 
 cat > /root/.claude/skills/browser-mcp-root-ns/scripts/repair-browser-mcp.sh <<'REPAIR_EOF'
@@ -403,6 +431,10 @@ bash /root/.claude/skills/browser-mcp-root-ns/scripts/repair-browser-mcp.sh
 ### 6. Let the run account reach the display and npm
 
 ```bash
+# setfacl, for the workspace ACL the launchers apply (see Known Pitfalls).
+export DEBIAN_FRONTEND=noninteractive
+apt-get install -y acl
+
 # Chrome needs the X cookie to talk to the display; /root/.Xauthority is 600 root,
 # so the run account gets its own copy.
 if [ -f /root/.Xauthority ]; then
@@ -542,8 +574,13 @@ ps -eo user,args | grep "[c]hrome" | grep -v "^root" ||
   Node upgrade; resolve it with
   `ls -1d /root/.nvm/versions/node/*/bin | sort -V | tail -n1`.
 - **The workspace belongs to root.** `playwright` resolves explicitly named output files against
-  the workspace root, which the run account cannot write to — hence `--output-dir` pointing at
-  `/home/browsermcp/playwright-out`.
+  the workspace root — the directory Claude Code was started in — which the run account cannot
+  write to, so a named screenshot fails with `EACCES: permission denied`. `--output-dir` only
+  covers automatically named files. The launchers therefore grant the run account access to the
+  workspace directory with a POSIX ACL (`setfacl -m u:<run user>:rwx <workspace>`): additive,
+  scoped to that one account, and undone with `setfacl -x u:<run user> <dir>`. Without
+  `setfacl` (package `acl`) the launcher skips it and named outputs keep failing — omit the
+  filename instead, and the screenshot lands in `--output-dir`.
 - **`--prefix ${PLUGIN_DATA}` is dropped by the launcher.** The cross-tool `mcp.json` asks npx to
   install into the plugin data directory, which is root-owned; the launcher strips the flag and
   the pair behind it so npx uses the run account's own cache instead.

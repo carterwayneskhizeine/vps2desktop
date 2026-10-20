@@ -136,7 +136,36 @@ desktop session, report the GUI check as a manual follow-up.
   A headless shell by itself cannot establish that a desktop window opens.
 - The package has TPM-library dependencies; use APT to resolve them rather than
   installing the DEB with `dpkg -i` alone.
+- **The app's data directory is not named after the package.** The Chromium
+  profile lives in `~/.config/Codex` (`UserDataDirectoryName=Codex` in
+  `resources/owl-app.ini`), while the shared account session lives in
+  `~/.codex/auth.json`. Looking for `~/.config/chatgpt` finds nothing and can
+  be mistaken for "the app was never started".
+- **A stale `id_token` is not a logged-out app.** The id token in
+  `~/.codex/auth.json` expires within hours; the session is carried by the
+  refresh token. Judge the sign-in by `codex login status`, not by the id
+  token's expiry.
 
 ## Manual follow-ups
 
 - Sign in to ChatGPT in the application.
+
+### Verifying the sign-in afterwards
+
+The login itself is always manual, but its result can be checked read-only.
+Never print token values, and never automate a login flow.
+
+```bash
+codex login status
+```
+
+`Logged in using ChatGPT` means the account session is live; an API-key
+message means the app is signed in with a key instead. The desktop app and the
+Codex CLI share one session, stored in `~/.codex/auth.json` (`auth_mode:
+chatgpt`, plus id/access/refresh tokens and an account id). Inspect the key
+names and the `auth_mode` only — never the token values.
+
+The desktop app is an Owl/Electron build whose Chromium profile is
+`~/.config/Codex`, not `~/.config/chatgpt`: `resources/owl-app.ini` sets
+`UserDataDirectoryName=Codex`. That directory is separate from `~/.codex`,
+which is the Codex CLI's own home, so the two coexist without conflict.

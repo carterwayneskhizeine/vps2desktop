@@ -515,3 +515,20 @@ Presets: minimal, remote-desktop, ai-toolkit, full.
   world-readable, with a named-user POSIX ACL documented as the narrower
   alternative. The pitfall asks for the check in both directions: the run
   account must execute `node`, and must still fail to `ls /root`.
+
+## c31 — 2026-10-20 — chatgpt: the sign-in can be verified afterwards
+
+- The "Sign in to ChatGPT in the application" follow-up had no way to be
+  checked, so a finished sign-in was indistinguishable from a pending one. The
+  component doc now documents the read-only check `codex login status`:
+  `Logged in using ChatGPT` confirms a live account session. The check reads
+  state only — it never drives a login flow and never prints token values.
+- The desktop app is an Owl/Electron build whose Chromium profile is
+  `~/.config/Codex` (`UserDataDirectoryName=Codex` in `resources/owl-app.ini`),
+  not `~/.config/chatgpt`. Searching for a `chatgpt` profile directory finds
+  nothing and can be misread as "the app never ran". The shared account session
+  is in `~/.codex/auth.json` (`auth_mode: chatgpt`), which is separate from
+  the Codex CLI's own `~/.codex` home.
+- The id token inside `~/.codex/auth.json` expires within hours while the
+  session is carried by the refresh token, so a stale id token is not a
+  logged-out app. Judge the sign-in by `codex login status`.

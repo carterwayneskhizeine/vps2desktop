@@ -153,7 +153,7 @@ components:
     group: apps
     deps: [xfce-desktop]
     channel: vendor-deb
-    summary: Explicitly selected local amd64 DEB, with root-safe command, menu and trusted desktop launchers. Package manages its vendor APT repository; login is manual.
+    summary: Explicitly selected local amd64 DEB, with root-safe command, menu and trusted desktop launchers. Package manages its vendor APT repository; login is manual but verifiable afterwards with `codex login status` — the shared session lives in ~/.codex/auth.json and the Electron profile in ~/.config/Codex, not ~/.config/chatgpt.
 
   - id: snipaste
     name: Snipaste (screenshot)

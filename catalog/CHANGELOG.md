@@ -532,3 +532,25 @@ Presets: minimal, remote-desktop, ai-toolkit, full.
 - The id token inside `~/.codex/auth.json` expires within hours while the
   session is carried by the refresh token, so a stale id token is not a
   logged-out app. Judge the sign-in by `codex login status`.
+
+## c32 — 2026-10-21 — chatgpt: the vendor publishes the Linux package itself
+
+- The component doc said the DEB had to be supplied by the user, which left no
+  way to install the app without hunting for the file first. OpenAI ships the
+  Linux build itself, and the upstream documentation
+  (https://developers.openai.com/codex/linux/linux-app) publishes the exact
+  package URL for every supported distribution and architecture — for
+  Ubuntu/Debian on x64:
+  https://persistent.oaistatic.com/codex-app-prod/linux/deb/latest/chatgpt_amd64.deb
+  The doc now lists the supported matrix (Ubuntu 24.04/26.04 LTS, Debian 13,
+  Fedora 43/44, Arch Linux; x64 and ARM64) and the URLs. A user-supplied DEB
+  still takes precedence; the official URL is the fallback, not a substitution.
+- The package's maintainer scripts register a signed OpenAI APT repository, so
+  later versions arrive through `apt-get update && apt-get install
+  --only-upgrade chatgpt` instead of a fresh download. Run `apt-get update`
+  after the install — until then the vendor repository is not in the package
+  lists and only the locally installed version is visible to apt.
+- Verified live on a fresh Ubuntu 26.04.1 install: package `chatgpt`
+  26.1016.51333 (amd64, 527 MB), root-safe wrapper plus trusted desktop and
+  menu launchers, and one visible GUI window belonging to
+  `/usr/lib/chatgpt/ChatGPT` on the Xfce session.

@@ -5,18 +5,50 @@
 | id | `chatgpt` |
 | group | apps |
 | deps | `xfce-desktop` |
-| channel | vendor-deb (explicitly selected local amd64 package) |
+| channel | vendor-deb (vendor-published amd64 package) |
 
-Install a user-selected ChatGPT DEB and configure launchers for the root Xfce
-desktop. Set `CHATGPT_DEB` to the absolute path of the package the user requested.
-An explicit local-package request takes precedence over the protocol's default
-latest-version policy; do not substitute another download or pin its version in
-the Catalog. This component requires that package to be supplied and is not in
-the Full preset.
+Install a ChatGPT DEB and configure launchers for the root Xfce desktop. Set
+`CHATGPT_DEB` to the absolute path of the package to install. A DEB the user
+supplied takes precedence over the protocol's default latest-version policy; do
+not substitute another download or pin its version in the Catalog. When no
+package is supplied, fetch it from the official vendor URL below. The component
+is not in the Full preset.
 
 The inspected vendor package includes a signed APT repository configuration in
 its maintainer scripts. Let the package manage that configuration. Account login
 remains manual.
+
+## Official vendor download
+
+OpenAI publishes the Linux build itself, so the app is installable without a
+user-supplied file. Upstream documentation:
+<https://developers.openai.com/codex/linux/linux-app>.
+
+The preview supports the desktop versions of Ubuntu 24.04 LTS and 26.04 LTS,
+Debian 13, Fedora 43 and 44 and Arch Linux, each with x64 and ARM64 packages.
+Match `uname -m` (`x86_64` → x64, `aarch64`/`arm64` → ARM64) and the
+distribution family:
+
+| Distribution | Architecture | Package URL |
+|---|---|---|
+| Ubuntu or Debian | x64 | `https://persistent.oaistatic.com/codex-app-prod/linux/deb/latest/chatgpt_amd64.deb` |
+| Ubuntu or Debian | ARM64 | `https://persistent.oaistatic.com/codex-app-prod/linux/deb/latest/chatgpt_arm64.deb` |
+| Fedora | x64 | `https://persistent.oaistatic.com/codex-app-prod/linux/rpm/latest/chatgpt.x86_64.rpm` |
+| Fedora | ARM64 | `https://persistent.oaistatic.com/codex-app-prod/linux/rpm/latest/chatgpt.aarch64.rpm` |
+
+Save the file to an absolute path and point `CHATGPT_DEB` at it. The package
+registers a signed OpenAI APT repository
+(`/etc/apt/sources.list.d/chatgpt.sources`), so later versions arrive through
+the normal package manager:
+
+```bash
+apt-get update
+apt-get install --only-upgrade chatgpt
+```
+
+Run `apt-get update` after the package's maintainer scripts run, otherwise the
+vendor repository is not yet in the package lists and only the locally
+installed version is visible.
 
 ## Guard (idempotency)
 

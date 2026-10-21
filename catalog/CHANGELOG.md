@@ -554,3 +554,24 @@ Presets: minimal, remote-desktop, ai-toolkit, full.
   26.1016.51333 (amd64, 527 MB), root-safe wrapper plus trusted desktop and
   menu launchers, and one visible GUI window belonging to
   `/usr/lib/chatgpt/ChatGPT` on the Xfce session.
+## c33 — 2026-10-21 — cyrus: install from source instead of the npm global package
+
+- The `cyrus` Component now checks out `github.com/cyrusagents/cyrus`, builds it
+  with `pnpm install && pnpm build`, and links `apps/cli` with `npm link`. The
+  npm-global `cyrus-ai@latest` install is gone; the Install block removes a
+  pre-existing global package so the command cannot silently keep running the
+  old code.
+- Rationale: a source install lets a deployment run and keep tested changes
+  that are not on npm yet — at the time of writing the repository was at 0.2.74
+  while npm `latest` was still 0.2.73.
+- Guard and Verify now assert the resolved path of `cyrus`, not only its
+  version — an npm package and a source build both print a version number.
+- New "Updating a source install" section: `git pull --ff-only`,
+  `pnpm install`, `pnpm build`, then restart the worker; a running process keeps
+  the code it loaded at startup.
+- Known Pitfalls: replaced the npm ≥12 postinstall note with pnpm 10's blocked
+  dependency build scripts (`cloudflared` is expected to be ignored because the
+  tunnel is external); documented that `pnpm link -g` cannot link this monorepo
+  (`ERR_PNPM_NO_GLOBAL_BIN_DIR` on a stock box, then
+  `ERR_PNPM_WORKSPACE_PKG_NOT_FOUND` on `workspace:*` deps) and that `npm link`
+  is the supported path; added the checkout-path coupling warning.

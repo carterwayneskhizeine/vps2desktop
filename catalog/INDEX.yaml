@@ -231,8 +231,8 @@ components:
     name: Cyrus
     group: ai-cli
     deps: [base-tools, node-nvm, claude-code]
-    channel: npm
-    summary: Latest cyrus-ai with guarded config initialization; Linear OAuth, provider credentials and repository setup stay manual. Includes Cloudflare routing and Agent delegation checks.
+    channel: github-source
+    summary: Latest cyrus source built with pnpm and linked with npm; guarded config initialization; Linear OAuth, provider credentials and repository setup stay manual. Includes Cloudflare routing and Agent delegation checks.
 
   - id: cc-switch-cli
     name: cc-switch CLI

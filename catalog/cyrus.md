@@ -5,7 +5,7 @@
 | id | `cyrus` |
 | group | ai-cli |
 | deps | `base-tools`, `node-nvm`, `claude-code` |
-| channel | npm (`cyrus-ai@latest`) |
+| channel | source (`github.com/cyrusagents/cyrus`, `pnpm build` + `npm link`) |
 
 Cyrus connects issue trackers and chat platforms to coding agents. This Component
 documents the community self-hosted path: Linear delegates a task, Cyrus creates
@@ -28,7 +28,10 @@ Official references: [Cyrus](https://github.com/cyrusagents/cyrus),
 ```bash
 export PATH="/root/.local/bin:$PATH"
 for d in /root/.nvm/versions/node/*/bin; do PATH="$d:$PATH"; done
-command -v cyrus >/dev/null 2>&1 &&
+CYRUS_SRC="${CYRUS_SRC:-/root/Code/cyrus}"
+test -d "$CYRUS_SRC/.git" &&
+  test -f "$CYRUS_SRC/apps/cli/dist/src/app.js" &&
+  test "$(readlink -f "$(command -v cyrus)")" = "$(readlink -f "$CYRUS_SRC/apps/cli/dist/src/app.js")" &&
   test -f /root/.cyrus/.env &&
   test -f /root/.cyrus/config.json
 ```
@@ -41,7 +44,19 @@ does not need to be reinstalled merely to document it.
 ```bash
 export PATH="/root/.local/bin:$PATH"
 for d in /root/.nvm/versions/node/*/bin; do PATH="$d:$PATH"; done
-npm install -g cyrus-ai@latest
+CYRUS_SRC="${CYRUS_SRC:-/root/Code/cyrus}"
+
+if [ -d "$CYRUS_SRC/.git" ]; then
+  git -C "$CYRUS_SRC" pull --ff-only
+else
+  git clone https://github.com/cyrusagents/cyrus.git "$CYRUS_SRC"
+fi
+
+(cd "$CYRUS_SRC" && pnpm install && pnpm build)
+
+# Replace any npm-global cyrus-ai with a symlink to this checkout.
+npm uninstall -g cyrus-ai >/dev/null 2>&1 || true
+(cd "$CYRUS_SRC/apps/cli" && npm link)
 
 umask 077
 mkdir -p /root/.cyrus
@@ -53,6 +68,15 @@ chmod 700 /root/.cyrus
 chmod 600 /root/.cyrus/.env /root/.cyrus/config.json
 ```
 
+The source install builds every workspace package with pnpm and links `apps/cli`
+into the npm global prefix. The `node-nvm` dependency supplies Node, npm and
+pnpm; `base-tools` supplies git. `npm link` is deliberate — `pnpm link -g` cannot
+link this monorepo (see Known Pitfalls). The runtime state under `/root/.cyrus`
+is not touched by the switch, so an existing Linear authorization and repository
+setup survive it. Stop a running worker before running the Install block: it
+replaces the global `cyrus` on disk while the old process still has the previous
+code in memory.
+
 The initialization commands are normally silent. They preserve existing config
 and credentials. Seed `config.json` before `self-auth-linear`: that command reads
 an existing config file, and running the worker first is not a reliable way to
@@ -63,7 +87,9 @@ create it on every release.
 ```bash
 export PATH="/root/.local/bin:$PATH"
 for d in /root/.nvm/versions/node/*/bin; do PATH="$d:$PATH"; done
+CYRUS_SRC="${CYRUS_SRC:-/root/Code/cyrus}"
 cyrus --version
+test "$(readlink -f "$(command -v cyrus)")" = "$(readlink -f "$CYRUS_SRC/apps/cli/dist/src/app.js")"
 test "$(stat -c %a /root/.cyrus)" = 700
 test "$(stat -c %a /root/.cyrus/.env)" = 600
 test "$(stat -c %a /root/.cyrus/config.json)" = 600
@@ -77,9 +103,25 @@ console.log('Cyrus config JSON is valid');
 NODE
 ```
 
-Record the reported CLI version after these checks pass. This verifies the
-installation; record integration readiness separately after the manual checks
+Record the reported CLI version after these checks pass. The path assertion
+distinguishes the source build from a leftover npm global package. This verifies
+the installation; record integration readiness separately after the manual checks
 below. Never dump `.env`, `config.json`, tokens or private keys into agent output.
+
+## Updating a source install
+
+```bash
+export PATH="/root/.local/bin:$PATH"
+for d in /root/.nvm/versions/node/*/bin; do PATH="$d:$PATH"; done
+CYRUS_SRC="${CYRUS_SRC:-/root/Code/cyrus}"
+git -C "$CYRUS_SRC" pull --ff-only
+(cd "$CYRUS_SRC" && pnpm install && pnpm build)
+```
+
+Then restart the worker by hand (see §5 for the foreground process; stop it
+first). A running process keeps the code it loaded at startup, so `git pull`
+alone never changes behavior. `npm link` does not need repeating unless the
+package's `bin` entry changes.
 
 ## Manual follow-ups
 
@@ -284,14 +326,24 @@ process is not proof of reboot persistence.
 
 ## Known Pitfalls
 
-- **npm ≥ 12 blocks postinstall scripts, including transitive ones.** `cyrus-ai`
-  pulls `cloudflared`, whose postinstall fetches the cloudflared binary; npm
-  warns `install-scripts … cloudflared@… (postinstall: node scripts/postinstall.mjs
-  && node lib/cloudflared.js bin install)` and skips it. Rerun with
-  `--allow-scripts=cyrus-ai --allow-scripts=cloudflared`. A clean install shows
-  no `npm warn install-scripts` lines. The binary lands inside the package
-  directory, not on `PATH` — that is expected; the Component's tunnel is
-  external.
+- **pnpm skips dependency build scripts by default.** `pnpm install` reports
+  `The following dependencies have build scripts that were ignored: cloudflared`.
+  pnpm 10 runs only the packages allowlisted under `onlyBuiltDependencies` in
+  `pnpm-workspace.yaml`, and the bundled cloudflared binary is irrelevant here
+  because the Component's tunnel is external. Leave it ignored; do not run
+  `pnpm approve-builds` unless that binary is actually needed.
+- **`pnpm link -g` cannot link this monorepo.** Two independent failures: a stock
+  box has no pnpm global bin directory (`ERR_PNPM_NO_GLOBAL_BIN_DIR` — `pnpm
+  setup` or `PNPM_HOME` would be required), and global-linking `apps/cli` tries
+  to resolve its `workspace:*` dependencies outside the workspace
+  (`ERR_PNPM_WORKSPACE_PKG_NOT_FOUND`). `npm link` from `apps/cli` creates only
+  the global package directory and `cyrus` bin symlinks; the package resolves
+  its dependencies from the checkout's own `node_modules`.
+- **The `cyrus` command is coupled to the checkout path.** `npm link` points the
+  global bin at `apps/cli/dist/src/app.js`; moving or deleting the checkout
+  breaks the command, and every `git pull` needs `pnpm install && pnpm build`
+  before the new code runs. Verify the resolved path, not just `--version`: both
+  an old npm package and a source build report a version number.
 - **`Invalid webhook signature`**: verify that the app's Webhook Signing Secret
   was copied into `LINEAR_WEBHOOK_SECRET`, with no placeholder or accidental
   whitespace. OAuth authorization can succeed while this independent secret is
@@ -301,12 +353,14 @@ process is not proof of reboot persistence.
   but a label change only affects routing. Delegate the issue to the Cyrus app
   (or use a supported Agent mention flow) to create an Agent Session. If a prior
   delegation was rejected, re-delegation can provide a fresh test event.
-- **`check-tokens` never returns**: observed in v0.2.73. The command leaves its
-  `.env` watcher open, and older logic checks only workspaces referenced by
-  repositories, so checking before adding a repo may print no result. Bound the
-  diagnostic with `timeout --signal=INT --kill-after=3s 20s cyrus check-tokens`;
-  timeout exit code 124 alone does not prove invalid OAuth credentials. A local
-  package repair is not an upstream release and may be overwritten by reinstall.
+- **`check-tokens` never returns**: observed in v0.2.73 and still present in the
+  v0.2.74 source. The command leaves its `.env` watcher open, and its logic
+  checks only workspaces referenced by repositories, so checking before adding a
+  repo may print no result. Bound the diagnostic with
+  `timeout --signal=INT --kill-after=3s 20s cyrus check-tokens`; timeout exit
+  code 124 alone does not prove invalid OAuth credentials. A local package
+  repair is not an upstream release; it lives in the checkout's source and is
+  lost on a fresh clone or overwritten by an update that does not include it.
 - **Check OAuth independently when that diagnostic hangs**: the following
   read-only check has a request deadline and never prints credentials. It checks
   the saved access token; it does not refresh an expired token.

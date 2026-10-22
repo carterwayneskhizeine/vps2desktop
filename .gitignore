@@ -5,6 +5,9 @@
 !/machines/templates/profile.md
 !/machines/templates/notes.md
 
+# Backups of the machine state (they contain manifests with credentials).
+/machines.zip
+
 # OS junk
 .DS_Store
 Thumbs.db

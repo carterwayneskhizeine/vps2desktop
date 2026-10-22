@@ -631,3 +631,27 @@ All findings verified live on contabo (Ubuntu 26.04.1, x86_64) on 2026-10-21.
   layout — before the autostart entry may be persisted.
 
 All findings verified live on contabo (Ubuntu 26.04.1, x86_64) on 2026-10-22.
+
+## c36 — 2026-10-22 — aichat config hand-over and key permissions (contabo)
+
+- aichat: the hand-over moves the **whole `~/.config/aichat/` directory**, not
+  just `config.yaml` — `functions/`, `macros/` and `roles/` travel with it.
+  Copying only the YAML silently drops the custom roles (`roles/*.md`) and
+  macros (`macros/*.yaml`); `aichat --list-roles` then shows only the built-in
+  ones. The doc now lists the pieces explicitly.
+- aichat: **the config directory holds API keys** — `config.yaml` carries the
+  `api_key` of every client it lists. Ship it as `700` with `600` files. A
+  hand-over copy inherits the source's permissions, and the source file found
+  on `light-node-01` was `755` (world-readable keys); re-own the result by
+  **name**, not by numeric uid, because the same uid is a different account on
+  another host.
+- aichat: **the component `Verify` (`aichat --version`) never reads the
+  config**, so a host with no `~/.config/aichat/` at all still passes it. The
+  doc now names the checks that actually prove a hand-over worked:
+  `--list-models`, `--list-roles`, `--info` and one real call.
+- vps2desktop: `.gitignore` now ignores `/machines.zip`. That archive is a
+  snapshot of `machines/` and contains the per-machine manifests with their
+  credentials, so it must never be committed — only `machines/templates/` is
+  tracked (ADR-0002).
+
+All findings verified live on contabo (Ubuntu 26.04.1, x86_64) on 2026-10-22.

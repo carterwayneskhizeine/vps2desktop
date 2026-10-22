@@ -246,7 +246,7 @@ components:
     group: ai-cli
     deps: []
     channel: github-api
-    summary: Query GitHub API for the latest release tag, then fetch the x86_64 musl tarball. Needs ~/.config/aichat/config.yaml (manual).
+    summary: Query GitHub API for the latest release tag, then fetch the x86_64 musl tarball. Hand-over is the whole ~/.config/aichat/ directory (config + functions/macros/roles), manual, keep it 700/600 — it holds API keys.
 
   - id: codex
     name: OpenAI Codex CLI

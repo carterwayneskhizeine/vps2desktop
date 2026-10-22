@@ -655,3 +655,28 @@ All findings verified live on contabo (Ubuntu 26.04.1, x86_64) on 2026-10-22.
   tracked (ADR-0002).
 
 All findings verified live on contabo (Ubuntu 26.04.1, x86_64) on 2026-10-22.
+
+## c37 — 2026-10-22 — RDP audio: root session had no PipeWire at all (contabo)
+
+- xrdp-audio: the root-session autostart script guarded with a bare
+  `pgrep -x pipewire`, which matches **every user's** daemon. The lightdm
+  greeter session always has one, so root's own PipeWire was never started,
+  `load_pw_modules.sh` aborted with `pipewire server is not running, exiting`,
+  and the root RDP session ended up with **no PulseAudio server at all**
+  (`pactl` → `Connection refused`, `/run/user/0/pulse` empty). The guards now
+  test root's own runtime-dir sockets (`$XDG_RUNTIME_DIR/pipewire-0`,
+  `$XDG_RUNTIME_DIR/pulse/native`) and use `pgrep -u "$(id -u)"` where a
+  process check is unavoidable.
+- xrdp-audio: the xrdp module is instantiated **inside the PipeWire daemon**,
+  so it reads `XRDP_SOCKET_PATH`, `XRDP_PULSE_SINK_SOCKET` and
+  `XRDP_PULSE_SOURCE_SOCKET` from the *daemon's* environment, not from the
+  `pw-cli` that loads it. The script now exports them (deriving the socket
+  names from `DISPLAY` when the session does not carry them) before starting
+  `pipewire`, and waits for `xrdp-chansrv` to publish
+  `xrdp_chansrv_audio_out_socket_<display>` — without that socket the module
+  loads but silently creates no sink.
+- xrdp-audio: `Verify` now states that a headless server lists a `(null)`
+  sink as well, so the real check is `Default Sink` = `xrdp-sink`, plus a
+  `paplay` tone test that needs no media file.
+
+All findings verified live on contabo (Ubuntu 26.04.1, x86_64) on 2026-10-22.

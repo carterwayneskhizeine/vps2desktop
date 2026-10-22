@@ -103,7 +103,7 @@ components:
     group: desktop
     deps: [xrdp]
     channel: apt
-    summary: pipewire-module-xrdp plus root-session autostart workaround; audio works after logout/login, not session reconnect.
+    summary: pipewire-module-xrdp plus root-session autostart workaround; the autostart guards on root's own runtime-dir sockets, never a bare pgrep; audio works after logout/login, not session reconnect.
 
   - id: fcitx5-chinese
     name: Chinese input (fcitx5)

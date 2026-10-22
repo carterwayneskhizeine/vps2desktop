@@ -81,7 +81,7 @@ components:
     group: base
     deps: []
     channel: apt
-    summary: Official stable apt repository; enables tailscaled for private tailnet networking. Optional desktop tray and web UI launcher require session verification; login and authorization are manual.
+    summary: Official stable apt repository; enables tailscaled for private tailnet networking. Optional desktop tray and web UI launcher require session verification (dbusmenu GetLayout needs recursionDepth -1, IconPixmap is ARGB); login and authorization are manual.
 
   # --- desktop ---
   - id: xfce-desktop

@@ -118,12 +118,45 @@ subprocess.Popen(['/usr/bin/tailscale', 'systray', '--theme=light:nobg'],
 print('Started bundled Tailscale tray in the existing desktop session.')
 ```
 
+Verify the tray in that same session before persisting it. The watcher must
+list an active `tailscale` item and the menu must return its entries:
+
+```bash
+# The desktop session's bus, not a login shell's.
+export DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/0/bus
+
+# 1. The watcher lists the registered items; one of them must be the tray.
+busctl --user get-property org.kde.StatusNotifierWatcher /StatusNotifierWatcher \
+  org.kde.StatusNotifierWatcher RegisteredStatusNotifierItems
+for svc in $(busctl --user get-property org.kde.StatusNotifierWatcher \
+    /StatusNotifierWatcher org.kde.StatusNotifierWatcher \
+    RegisteredStatusNotifierItems | grep -oE ':[0-9]+\.[0-9]+'); do
+  busctl --user get-property "$svc" /StatusNotifierItem \
+    org.kde.StatusNotifierItem Id
+  busctl --user get-property "$svc" /StatusNotifierItem \
+    org.kde.StatusNotifierItem Status
+done
+
+# 2. The menu must return its entries. Use recursionDepth -1, not 0, and
+#    dbus-send, not busctl — see the Known Pitfalls below. <service> is the
+#    bus name from step 1 whose Id is "tailscale" (e.g. :1.417).
+dbus-send --session --print-reply --dest=<service> \
+  /StatusNotifierItem/menu com.canonical.dbusmenu.GetLayout \
+  int32:0 int32:-1 array:string:
+```
+
+An `Id` of `tailscale` with `Status` `Active` in step 1, and a non-empty
+layout in step 2 (Connected, Disconnect, Exit Nodes, More settings, Quit, …),
+are the compatibility evidence. The `IconPixmap` property carries a 250×250
+image of the Tailscale dot logo — the same logo the panel should display.
+
 This is a compatibility check, not a universal guarantee: upstream currently
 lists Xfce as unsupported and advises against running systray as root. The
 current upstream code warns about root rather than unconditionally exiting.
 Only persist it on a root Xfce desktop after verifying that its icon and menu
 work in that exact session. Do not change accounts, Tailscale operator settings
-or the user's existing login to work around a GUI limitation.
+or the user's existing login to work around a GUI limitation. The tray exists
+only while a desktop session is logged in; a daemon-only host never shows it.
 
 For a graphical management entry point, Tailscale provides a local web UI at
 `http://100.100.100.100/` on current clients. Check its HTTP response before
@@ -185,3 +218,19 @@ and [device web interface](https://tailscale.com/docs/features/client/device-web
   distribution or the unstable channel.
 - Exit-node, subnet-route, DNS and Tailscale SSH settings require a separate
   request; ordinary installation does not configure these features.
+- **`GetLayout` with `recursionDepth 0` returns an empty layout.** The
+  systray fills the child list only for a recursive layout, so verifying the
+  menu with depth `0` — the natural first guess — makes a working menu look
+  broken. Use `int32:-1`.
+- **`busctl` cannot pass `-1` as an argument.** It reads the value as an
+  option (`invalid option -- '1'`), and its own array syntax rejects the
+  empty `as` argument. Use `dbus-send` for the `GetLayout` call.
+- **`IconPixmap` is ARGB in network byte order.** The `a(iiay)` property
+  carries raw bytes whose first byte per pixel is the alpha channel.
+  Decoding them as BGRA — the usual Linux memory layout — yields a
+  wrong-coloured icon and a broken alpha channel, which makes a perfectly
+  good logo look corrupt.
+- **The status icon is a separate process, not part of the daemon.** A
+  correctly installed and joined `tailscaled` still shows no tray icon until
+  `tailscale systray` runs inside a desktop session. The CLI install alone
+  never provides an icon.

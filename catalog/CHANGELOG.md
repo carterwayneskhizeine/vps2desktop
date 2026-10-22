@@ -554,6 +554,7 @@ Presets: minimal, remote-desktop, ai-toolkit, full.
   26.1016.51333 (amd64, 527 MB), root-safe wrapper plus trusted desktop and
   menu launchers, and one visible GUI window belonging to
   `/usr/lib/chatgpt/ChatGPT` on the Xfce session.
+
 ## c33 — 2026-10-21 — cyrus: install from source instead of the npm global package
 
 - The `cyrus` Component now checks out `github.com/cyrusagents/cyrus`, builds it
@@ -575,3 +576,58 @@ Presets: minimal, remote-desktop, ai-toolkit, full.
   (`ERR_PNPM_NO_GLOBAL_BIN_DIR` on a stock box, then
   `ERR_PNPM_WORKSPACE_PKG_NOT_FOUND` on `workspace:*` deps) and that `npm link`
   is the supported path; added the checkout-path coupling warning.
+
+## c34 — 2026-10-21 — fixes from a live contabo deploy (Ubuntu 26.04.1)
+
+- bash-completion: the Verify greped for `_completion_loader`, but
+  bash-completion 2.16 (the 26.04 package) registers the default handler as
+  `_comp_complete_load`. The install was working — the assertion was written
+  against an older package. The Verify now accepts either name, and the
+  expected script count is documented for both 24.04 (936) and 26.04 (1378).
+- notepadplusplus: the URL extraction used `grep -oE` with `\K`, which is a
+  PCRE construct that GNU grep only honours under `-P`. The pattern matched
+  nothing, `DEB_URL` came out empty and `curl` died with "blank argument".
+  Fixed to `-oP` — the only other catalog doc that used `\K` already did.
+- notepadplusplus: the release deb's `Depends` names the 24.04 Qt6 packages
+  (`libqt6widgets6t64`), which no longer exist in 26.04, so `apt-get install
+  ./npp.deb` fails with "not installable". The doc now documents repacking
+  the deb with the 26.04 names (`libqt6widgets6`, `libqt6xml6`) instead of
+  forcing the install. `libqt6core6t64` still exists and needs no rewrite.
+- docker-desktop: documented what a host without `/dev/kvm` actually does.
+  The `test -c /dev/kvm` precondition aborts the whole Install script on a
+  cloud guest with no nested virtualization, while the package itself
+  installs and the Verify passes — only the runtime is dead. The doc now
+  says to skip the component or record it as installed-but-unusable.
+- docker-desktop: the package installs its own CLI plugins into
+  `/usr/lib/docker/cli-plugins/`, which take precedence over the Engine's
+  `/usr/libexec/docker/cli-plugins/`. With both installed, `docker compose
+  version` reports Desktop's bundled Compose (v5.6.0) instead of the
+  `docker-compose-plugin` package version (v5.6.1). The Engine daemon,
+  socket and `docker run` are unaffected.
+
+All findings verified live on contabo (Ubuntu 26.04.1, x86_64) on 2026-10-21.
+
+## c35 — 2026-10-22 — tailscale tray verification gotchas (contabo)
+
+- tailscale: `com.canonical.dbusmenu.GetLayout` with `recursionDepth 0`
+  returns an **empty** layout — the systray fills the child list only for a
+  recursive layout. Verifying the menu with depth `0`, the natural first
+  guess, makes a working menu look broken. Use `int32:-1`.
+- tailscale: `busctl` cannot pass `-1` as an argument (it parses it as an
+  option: `invalid option -- '1'`) and rejects the empty `as` argument in its
+  own array syntax. The doc now verifies the menu with `dbus-send`.
+- tailscale: the `IconPixmap` property is **ARGB in network byte order** —
+  the first byte of each pixel is the alpha channel. Decoding it as BGRA,
+  the usual Linux memory layout, yields a wrong-coloured icon with a broken
+  alpha channel.
+- tailscale: the status icon is a **separate process**, not part of the
+  daemon. A correctly installed and joined `tailscaled` still shows no tray
+  icon until `tailscale systray` runs inside a desktop session; the CLI
+  install alone never provides an icon. The doc now states this and notes
+  that the tray exists only while a session is logged in.
+- tailscale: the "Desktop integration (optional)" section now ships the
+  exact verification commands and defines the compatibility evidence — an
+  active `tailscale` StatusNotifierItem plus a non-empty recursive menu
+  layout — before the autostart entry may be persisted.
+
+All findings verified live on contabo (Ubuntu 26.04.1, x86_64) on 2026-10-22.

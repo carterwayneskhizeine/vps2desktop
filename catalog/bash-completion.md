@@ -50,11 +50,11 @@ reconnect.
 ## Verify
 
 ```bash
-bash -ic 'complete -p -D' | grep -q _completion_loader && echo active
+bash -ic 'complete -p -D' 2>/dev/null | grep -qE '_completion_loader|_comp_complete_load' && echo active
 ls /usr/share/bash-completion/completions | wc -l
 ```
 
-Expect `active` and a few hundred scripts (936 on Ubuntu 24.04).
+Expect `active` and a few hundred scripts (936 on Ubuntu 24.04, 1378 on 26.04).
 
 ## Known Pitfalls
 
@@ -66,6 +66,10 @@ Expect `active` and a few hundred scripts (936 on Ubuntu 24.04).
   (`complete -D -F _completion_loader`) that sources a command's script on the
   first Tab press; there is deliberately no per-command entry to find. Check
   the default handler, not an individual command.
+- **The default handler was renamed in bash-completion 2.16.** Older packages
+  register `_completion_loader`; 2.16 (Ubuntu 26.04) registers
+  `_comp_complete_load`. A Verify that greps for the old name alone reports
+  failure on a working install — accept either.
 - **`complete -D` without `-p` performs a completion instead of printing one**,
   so it exits silently. Always use `complete -p -D`.
 - **Non-interactive shells never load it.** `~/.bashrc` opens with

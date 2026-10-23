@@ -760,3 +760,55 @@ on 2026-10-23.
 
 All findings verified live on the local machine (cyrus 0.2.74 source,
 codex 0.163.0, claude-code native installer) on 2026-10-23.
+
+## c41 — 2026-10-23 — checklist sync and a complete `full` preset
+
+- checklist.html: the offline checklist UI was missing components that the
+  registry already carried. Added `chatgpt`, `webssh`, `codium` and
+  `notepadplusplus`, then `bash-completion`, `docker-desktop`, `docker-engine`,
+  `mmx-cli` and `openwiki`. The checklist now carries all 35 ids of this
+  registry, in registry order, and its Full preset (`ids: ALL`) exports 35
+  components. The ai-cli group order now matches the registry too
+  (`browser-mcp` before `tavily-cli`).
+- INDEX.yaml: the `full` preset listed 27 of the 35 components while its own
+  comment said "everything" — `bash-completion`, `codium`, `notepadplusplus`,
+  `chatgpt`, `webssh`, `mmx-cli`, `browser-mcp` and `openwiki` were missing, so
+  a manifest exported from the catalog preset was smaller than one exported from
+  the checklist. The preset now lists every component id, in registry order.
+- No install recipe changed: `chatgpt`, `webssh`, `codium`, `notepadplusplus`,
+  `bash-completion`, `docker-desktop`, `docker-engine`, `mmx-cli` and
+  `openwiki` all had complete `catalog/<id>.md` docs already. This entry only
+  realigns the registry preset and the checklist UI.
+
+## c42 — 2026-10-23 — openwiki provider hand-over resolved (local machine)
+
+- openwiki: the "Configure the LLM provider" follow-up said the exact key
+  hand-over was undocumented because provider setup had never been exercised.
+  It has now, against openwiki 0.7.2 (nvm node v24.22.0):
+  - **`~/.openwiki/.env` is the source of truth and the CLI loads it itself.**
+    `dist/config/env.js` reads the file with Node's `parseEnv` and seeds
+    `process.env` for every key the shell did not already set — a shell export
+    wins over the file. The CLI writes the file itself (`formatEnv` →
+    `KEY="value"`, mode 600 inside a 0700 state directory).
+  - **The `--help` banner's `model:` line is not the model in use.** It renders
+    the built-in default label (`DEFAULT_MODEL_ID = "gpt-5.6-terra"`) for every
+    non-run command, because `startupModelId` is only populated for
+    `kind: "run"`. The agent calls `process.env.OPENWIKI_MODEL_ID`, resolved in
+    `dist/ingestion/code-mode.js` as
+    `env[OPENWIKI_MODEL_ID_ENV_KEY]?.trim() || config.modelOptions[0]?.id`.
+    Measured on the local machine: the file asks for `deepseek-flash` and the
+    agent runs on `deepseek-flash`, while the banner still reads
+    `gpt-5.6-terra`.
+  - **`provider: OpenAI` is the display name of the `openai-compatible`
+    provider**, not a claim about OpenAI's own endpoint — the endpoint is
+    whatever `OPENAI_COMPATIBLE_BASE_URL` points at.
+  - The managed key names are `OPENWIKI_PROVIDER`, `OPENWIKI_MODEL_ID`,
+    `OPENAI_COMPATIBLE_API_KEY`, `OPENAI_COMPATIBLE_BASE_URL`,
+    `OPENAI_COMPATIBLE_AUTH` and `LANGCHAIN_TRACING_V2`; the setup wizard's
+    credential diagnostics panel reports each key with its source.
+- openwiki: `openwiki --help` prints the banner (`>_ OpenWiki vX.Y.Z`), the
+  provider, the model label and the working directory; `--version` stays
+  unsupported.
+- INDEX.yaml: openwiki summary now names `~/.openwiki/.env` as the hand-over
+  and states that the banner renders the default model label rather than the
+  effective model.

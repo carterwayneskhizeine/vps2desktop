@@ -170,6 +170,7 @@ const GROUPS = [["base","Base"],["desktop","Desktop"],["apps","Applications"],["
 
 const COMPONENTS = [
   {id:"base-tools",      name:"Base toolset",            group:"base",     deps:[],                 desc:"curl/git/jq/rg/tmux/htop/gh/build-essential/python3 — everything else assumes these"},
+  {id:"bash-completion", name:"bash-completion (Tab)",    group:"base",     deps:[],                 desc:"Tab completion for hundreds of third-party CLIs in plain bash — the package alone does nothing until ~/.bashrc sources it"},
   {id:"fail2ban",        name:"fail2ban (sshd jail)",    group:"base",     deps:[],                 desc:"Bans IPs hammering SSH. Strongly recommended with root password login"},
   {id:"tailscale",       name:"Tailscale",                group:"base",     deps:[],                 desc:"Private tailnet networking via official stable apt repo; login manual"},
   {id:"xfce-desktop",    name:"Xfce desktop",            group:"desktop",  deps:[],                 desc:"Xfce 4 session/panel/terminal + Noto CJK fonts"},
@@ -179,9 +180,15 @@ const COMPONENTS = [
   {id:"chrome",          name:"Google Chrome",           group:"apps",     deps:[],                 desc:"Always the current stable .deb, root-safe wrapper"},
   {id:"obsidian",        name:"Obsidian",                group:"apps",     deps:["base-tools","xfce-desktop"], desc:"Latest official AppImage in Documents, with icon and trusted desktop launcher"},
   {id:"vscode",          name:"VS Code",                 group:"apps",     deps:[],                 desc:"Always the current stable .deb, root-safe wrapper"},
+  {id:"codium",          name:"VSCodium",                group:"apps",     deps:[],                 desc:"VSCodium snap (classic) with a root-safe wrapper — same vendor root guard as VS Code"},
+  {id:"notepadplusplus", name:"Notepad++ (Linux port)",  group:"apps",     deps:[],                 desc:"Native Qt6 port of Notepad++ from the GitHub release deb — never the snap (strict confinement makes /root read-only)"},
+  {id:"chatgpt",         name:"ChatGPT desktop",         group:"apps",     deps:["xfce-desktop"],   desc:"OpenAI's own ChatGPT desktop app (amd64 DEB, preview) — root-safe launchers, upgrades via apt, login manual"},
   {id:"snipaste",        name:"Snipaste (screenshot)",   group:"apps",     deps:["base-tools","xfce-desktop"], desc:"Latest official AppImage in Documents, with icon, trusted launcher, menu entry and autostart"},
   {id:"peazip",          name:"PeaZip (archiver)",       group:"apps",     deps:[],                 desc:"GTK2 deb via GitHub latest + Thunar right-click actions (extract/add)"},
   {id:"warp-terminal",   name:"Warp terminal",           group:"apps",     deps:[],                 desc:"Official apt repo (stable, GPG-signed), auto-updates with apt; login manual"},
+  {id:"docker-desktop",  name:"Docker Desktop",          group:"apps",     deps:[],                 desc:"Official Docker Desktop .deb — needs 4 GiB RAM, KVM and nested virtualization; no GUI on Xfce as root"},
+  {id:"docker-engine",   name:"Docker Engine",           group:"apps",     deps:[],                 desc:"Official Docker Engine + Buildx + Compose V2 from Docker's signed apt repo; managed by the system docker service"},
+  {id:"webssh",          name:"WebSSH (browser SSH client)", group:"apps",  deps:["base-tools","uv"], desc:"Browser SSH client (Tornado + xterm.js) as a uv tool — no auth of its own, so bind one private address only"},
   {id:"node-nvm",        name:"Node.js (nvm, LTS)",      group:"runtime",  deps:[],                 desc:"Latest nvm + latest Node LTS + pnpm; carrier for the npm-based AI CLIs"},
   {id:"uv",              name:"uv (Python)",             group:"runtime",  deps:[],                 desc:"Astral uv/uvx via official installer"},
   {id:"anaconda",        name:"Anaconda",                group:"runtime",  deps:[],                 desc:"Full Anaconda to /root/anaconda3 (TLS-only; upstream no longer publishes checksums)"},
@@ -193,8 +200,10 @@ const COMPONENTS = [
   {id:"opencode",        name:"OpenCode",                group:"ai-cli",   deps:["node-nvm"],       desc:"npm global (package is opencode-ai)"},
   {id:"pi",              name:"pi coding agent",         group:"ai-cli",   deps:["node-nvm"],       desc:"npm global (@earendil-works/pi-coding-agent)"},
   {id:"agent-browser",   name:"agent-browser",           group:"ai-cli",   deps:["node-nvm"],       desc:"Browser automation CLI + managed browser binaries"},
-  {id:"tavily-cli",      name:"tavily-cli (tvly)",       group:"ai-cli",   deps:["uv"],             desc:"Tavily search CLI as a uv tool (key is manual)"},
+  {id:"mmx-cli",         name:"MiniMax CLI (mmx)",       group:"ai-cli",   deps:["node-nvm"],       desc:"MiniMax's official CLI — text chat, image/video/speech, vision, web search and quota; auth manual"},
   {id:"browser-mcp",     name:"Browser MCP (sandboxed)", group:"ai-cli",   deps:["chrome","node-nvm","claude-code"], desc:"playwright + chrome-devtools MCP servers run unprivileged, so Chrome keeps its kernel sandbox — no --no-sandbox"},
+  {id:"tavily-cli",      name:"tavily-cli (tvly)",       group:"ai-cli",   deps:["uv"],             desc:"Tavily search CLI as a uv tool (key is manual)"},
+  {id:"openwiki",        name:"OpenWiki",                group:"ai-cli",   deps:["node-nvm"],       desc:"DeepAgents docs agent that writes and maintains a wiki for a codebase; provider key manual"},
 ];
 
 const ALL = COMPONENTS.map(c => c.id);

@@ -26,6 +26,7 @@ presets:
     - tavily-cli
   full:  # everything
     - base-tools
+    - bash-completion
     - fail2ban
     - tailscale
     - xfce-desktop
@@ -35,11 +36,15 @@ presets:
     - chrome
     - obsidian
     - vscode
+    - codium
+    - notepadplusplus
+    - chatgpt
     - snipaste
     - peazip
     - warp-terminal
     - docker-desktop
     - docker-engine
+    - webssh
     - node-nvm
     - uv
     - anaconda
@@ -51,7 +56,10 @@ presets:
     - opencode
     - pi
     - agent-browser
+    - mmx-cli
+    - browser-mcp
     - tavily-cli
+    - openwiki
 
 components:
   # --- base ---
@@ -302,4 +310,4 @@ components:
     group: ai-cli
     deps: [node-nvm]
     channel: npm
-    summary: DeepAgents documentation agent that generates and maintains a wiki for a codebase (needs Node >= 22.22.0). npm blocks the transitive better-sqlite3 install script, so every install/upgrade reruns with --allow-scripts=better-sqlite3 or the native binding is silently missing; --version is not a flag — read the --help banner. Provider (OpenAI) key setup is manual.
+    summary: DeepAgents documentation agent that generates and maintains a wiki for a codebase (needs Node >= 22.22.0). npm blocks the transitive better-sqlite3 install script, so every install/upgrade reruns with --allow-scripts=better-sqlite3 or the native binding is silently missing; --version is not a flag — read the --help banner. Provider config lives in ~/.openwiki/.env, which the CLI loads itself (a shell export wins) — but the --help banner renders the built-in default model label, not the effective model.

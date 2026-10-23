@@ -73,11 +73,50 @@ headless-safe. Record the banner version after these checks pass.
 - The banner reports `provider: OpenAI` and a model id; installation does not
   configure a provider key, so a clean banner does not mean the agent can
   actually run.
+- **The `--help` banner's `model:` line is not the model in use.** It renders
+  the built-in default label (`DEFAULT_MODEL_ID = "gpt-5.6-terra"`) for every
+  non-run command, because `startupModelId` is only populated for
+  `kind: "run"`. The agent calls `process.env.OPENWIKI_MODEL_ID` — the value
+  from `~/.openwiki/.env`. A banner showing a gpt id while the agent talks to
+  an openai-compatible gateway is expected, not a misconfiguration.
+- **`provider: OpenAI` is the display name of the `openai-compatible`
+  provider**, not a claim about OpenAI's own endpoint — the endpoint is
+  whatever `OPENAI_COMPATIBLE_BASE_URL` points at.
 
 ## Manual follow-ups
 
 ### 1. Configure the LLM provider
 
-The banner reports `provider: OpenAI`; openwiki was cataloged before provider
-setup was exercised, so the exact key hand-over (environment variable vs.
-config file) is not yet documented here — record it on first real use.
+**`~/.openwiki/.env` is the source of truth, and the CLI loads it itself.**
+Verified against openwiki 0.7.2 on 2026-10-23 (local machine, nvm node
+v24.22.0): `dist/config/env.js` reads the file with Node's `parseEnv` and
+seeds `process.env` for every key the shell did not already set — **a shell
+export wins over the file**. The CLI writes the file itself (`formatEnv` →
+`KEY="value"`, mode 600 inside a 0700 state directory).
+
+```bash
+OPENWIKI_PROVIDER=openai-compatible
+OPENWIKI_MODEL_ID=deepseek-flash
+OPENAI_COMPATIBLE_API_KEY=...
+OPENAI_COMPATIBLE_BASE_URL=...
+OPENAI_COMPATIBLE_AUTH=...
+LANGCHAIN_TRACING_V2=false
+```
+
+**The `--help` banner does not show the effective model.** On a non-run
+command the header renders the built-in default label
+(`DEFAULT_MODEL_ID = "gpt-5.6-terra"`), because `startupModelId` is only
+populated for `kind: "run"`. The model the agent actually calls with is
+`process.env.OPENWIKI_MODEL_ID`, resolved in `dist/ingestion/code-mode.js` as
+`env[OPENWIKI_MODEL_ID_ENV_KEY]?.trim() || config.modelOptions[0]?.id`. Read
+the banner's `model:` line as a label, not as the running model.
+
+Likewise `provider: OpenAI` is the display name of the `openai-compatible`
+provider; the endpoint is whatever `OPENAI_COMPATIBLE_BASE_URL` points at.
+
+To see the effective values and their source, use the setup wizard's
+credential diagnostics panel — it reports every managed key with its origin
+(`process.env over ~/.openwiki/.env`, `process.env`, the file, or `unset`).
+
+The CLI's own state lives beside the file: `conversation_history/`, `skills/`,
+`connectors/`, `wiki/` and `onboarding.json` under `/root/.openwiki/`.

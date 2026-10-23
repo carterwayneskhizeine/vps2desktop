@@ -132,7 +132,7 @@ components:
     group: apps
     deps: []
     channel: vendor-deb
-    summary: Official VS Code .deb; on root sessions a wrapper with --user-data-dir is installed.
+    summary: Official VS Code .deb from the stable download URL (ahead of the vendor APT repo); on root sessions a wrapper with --user-data-dir is installed and must be restored after every deb upgrade.
 
   - id: codium
     name: VSCodium

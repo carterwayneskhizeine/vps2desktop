@@ -680,3 +680,25 @@ All findings verified live on contabo (Ubuntu 26.04.1, x86_64) on 2026-10-22.
   `paplay` tone test that needs no media file.
 
 All findings verified live on contabo (Ubuntu 26.04.1, x86_64) on 2026-10-22.
+
+## c38 — 2026-10-23 — VS Code upgrade deletes the root wrapper; download beats the APT repo (contabo)
+
+- vscode: **the deb upgrade removes `/usr/local/bin/code`.** The package ships its
+  own `/usr/bin/code` and knows nothing about the root wrapper, so
+  `apt-get install -y ./code.deb` deletes it and the menu entries silently fall
+  back to the bare binary as root (blank window / crash). Observed twice:
+  `light-node-01` 2026-10-11 and `contabo` 2026-10-23. The doc now says to
+  re-run the **whole** Install block after every upgrade — wrapper and desktop
+  overrides, not just the download.
+- vscode: **the stable download is newer than the vendor APT repo.** On
+  2026-10-23 the download URL served `1.143.1-1792691907` while
+  `apt-cache policy code` offered `1.143.0-1792533444` as the candidate, so
+  `apt-get upgrade` alone leaves one build behind. Always install from the
+  download URL.
+- vscode: `code --version` **does not exit on its own** in a headless session —
+  it hangs the Verify loop. The Verify now wraps it in `timeout` and pipes it
+  into `head -1`; `dpkg-query -W code` remains the version of record.
+
+All findings verified live on contabo (Ubuntu 26.04.1, x86_64) on 2026-10-23
+(upgrade 1.142.0-1792035033 → 1.143.1-1792691907, GUI relaunch confirmed in the
+live xrdp session on :10.0).

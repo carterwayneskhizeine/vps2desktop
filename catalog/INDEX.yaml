@@ -296,3 +296,10 @@ components:
     deps: [uv]
     channel: uv-tool
     summary: uv tool install tavily-cli; executable is "tvly". API key is manual.
+
+  - id: openwiki
+    name: OpenWiki
+    group: ai-cli
+    deps: [node-nvm]
+    channel: npm
+    summary: DeepAgents documentation agent that generates and maintains a wiki for a codebase (needs Node >= 22.22.0). npm blocks the transitive better-sqlite3 install script, so every install/upgrade reruns with --allow-scripts=better-sqlite3 or the native binding is silently missing; --version is not a flag — read the --help banner. Provider (OpenAI) key setup is manual.

@@ -702,3 +702,27 @@ All findings verified live on contabo (Ubuntu 26.04.1, x86_64) on 2026-10-22.
 All findings verified live on contabo (Ubuntu 26.04.1, x86_64) on 2026-10-23
 (upgrade 1.142.0-1792035033 → 1.143.1-1792691907, GUI relaunch confirmed in the
 live xrdp session on :10.0).
+
+## c39 — 2026-10-23 — openwiki: new component; the allow-scripts trap applies to it too (local)
+
+- openwiki: **new component** — `catalog/openwiki.md` plus the `INDEX.yaml`
+  entry (id `openwiki`, group `ai-cli`, deps `node-nvm`, channel `npm`). A
+  CLI that runs a DeepAgents documentation agent to generate and maintain a
+  wiki for a codebase; engine floor Node >= 22.22.0, satisfied by
+  `node-nvm` v24.22.0. Not added to any preset — membership is a separate
+  decision, and mmx-cli/browser-mcp set the precedent for npm ai-cli tools
+  outside the presets.
+- openwiki: **the install "succeeds" with the `better-sqlite3` install
+  script blocked.** npm's allowScripts policy leaves the native binding
+  missing with only an `npm warn install-scripts` warning — the same shape
+  as pi's transitive postinstall case. Every install/upgrade reruns
+  `npm install -g --allow-scripts=better-sqlite3 openwiki`; a clean install
+  shows no `npm warn install-scripts` lines. The Verify section loads the
+  binding directly, so the trap is caught at verify time instead of at
+  first use.
+- openwiki: `--version` is not a supported flag (`Unknown option:
+  --version`); the `--help` banner is the version of record. The
+  install-time `ERESOLVE` warning (deepagents/langsmith peer conflict) is
+  benign.
+All findings verified live on the local machine (nvm node v24.22.0, x86_64)
+on 2026-10-23.

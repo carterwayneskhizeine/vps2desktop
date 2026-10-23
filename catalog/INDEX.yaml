@@ -232,7 +232,7 @@ components:
     group: ai-cli
     deps: [base-tools, node-nvm, claude-code]
     channel: github-source
-    summary: Latest cyrus source built with pnpm and linked with npm; guarded config initialization; Linear OAuth, provider credentials and repository setup stay manual. Includes Cloudflare routing and Agent delegation checks.
+    summary: Latest cyrus source built with pnpm and linked with npm; guarded config initialization; Linear OAuth, provider credentials and repository setup stay manual. Includes Cloudflare routing, Agent delegation checks, multi-runner selection and the permission posture for the Claude and Codex runners.
 
   - id: cc-switch-cli
     name: cc-switch CLI

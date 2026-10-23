@@ -726,3 +726,37 @@ live xrdp session on :10.0).
   benign.
 All findings verified live on the local machine (nvm node v24.22.0, x86_64)
 on 2026-10-23.
+
+## c40 — 2026-10-23 — cyrus multi-runner permission posture; claude-code root bypass; codex config.toml keys (contabo)
+
+- cyrus: **new "Runners and permission posture" section** — runner selection
+  (`CYRUS_DEFAULT_RUNNER` plus per-issue `[agent=...]`/`[model=...]`
+  description tags at highest precedence), the Codex runner's
+  `codexSandboxMode` key (hot reload; `~/.codex/config.toml` sandbox does not
+  apply to spawned sessions), the Claude full-permission path
+  (`permissions.defaultMode: bypassPermissions` + `IS_SANDBOX=1` under root)
+  and the home-directory Read deny facts: current Claude Code extends `Read`
+  deny rules to file-reading Bash commands, resolves symlinks to their real
+  path, and lets explicit deny rules win over bypass mode — only allow-listing
+  lifts it. Documents the `claudeAllowedDirectories` whitelist key
+  (`~`-expanded, hot reload, carves paths out of the deny list).
+- cyrus: **extended the `Invalid webhook signature` pitfall** — appending to
+  `.env` with `echo ... >>` when the file lacks a trailing newline glues the
+  new key onto the last line and corrupts the secret while everything still
+  parses; `/proc/<pid>/environ` does not show dotenv-loaded values, so absence
+  there proves nothing.
+- claude-code: **root + bypass permissions is a startup-breaking key** without
+  `IS_SANDBOX=1` in the environment; settings.json (env auth block and
+  `permissions`) applies to every session of the user, including
+  tool-spawned ones.
+- codex: **new "Permission posture (config.toml)" section** — the classic
+  keys (`sandbox_mode`, `approval_policy`, `writable_roots`, `network_access`,
+  `shell_environment_policy.inherit`, `tools.web_search`) with verification
+  via `codex doctor`; top-level-keys-before-tables rule; ChatGPT desktop
+  co-management of the file; inert keys under `danger-full-access`; beta
+  permissions-profile conflicts.
+- INDEX.yaml: cyrus summary now mentions multi-runner selection and the
+  permission posture.
+
+All findings verified live on the local machine (cyrus 0.2.74 source,
+codex 0.163.0, claude-code native installer) on 2026-10-23.

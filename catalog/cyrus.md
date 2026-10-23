@@ -9,7 +9,9 @@
 
 Cyrus connects issue trackers and chat platforms to coding agents. This Component
 documents the community self-hosted path: Linear delegates a task, Cyrus creates
-a Git worktree, Claude processes it, and activities/results return to Linear.
+a Git worktree, a configured runner processes it — Claude Code by default, with
+Codex and other runners selectable per issue — and activities/results return to
+Linear.
 GitHub CLI authentication lets the agent push branches and create PRs. GitHub
 App/webhook setup is a separate, optional integration for inbound GitHub events.
 
@@ -122,6 +124,46 @@ Then restart the worker by hand (see §5 for the foreground process; stop it
 first). A running process keeps the code it loaded at startup, so `git pull`
 alone never changes behavior. `npm link` does not need repeating unless the
 package's `bin` entry changes.
+
+## Runners and permission posture
+
+Cyrus runs one runner per Agent Session. `CYRUS_DEFAULT_RUNNER` in `.env` picks
+the default (`claude`); per-issue overrides win in this order: description tags
+(`[agent=codex] [model=gpt-6.1-sol]`) > provider/model labels > agent labels >
+model labels > repository `model` > per-runner `codexDefaultModel`-style
+defaults. A description tag silently beats the default runner — delete the tag
+from the issue when it should fall back to `claude`.
+
+### Codex runner
+
+- `codexSandboxMode` in `config.json` (`read-only`, `workspace-write`,
+  `danger-full-access`) is passed per session; hot reload applies it without a
+  restart. Default is `workspace-write`.
+- The Codex CLI reads `~/.codex/config.toml`, but a Cyrus-spawned session
+  receives its sandbox per thread, so `sandbox_mode` there does not apply to
+  Cyrus sessions. Approval is always `never` for spawned sessions.
+- Verify a standalone config with `codex doctor`; it prints the effective
+  sandbox and network posture.
+
+### Claude runner
+
+- Cyrus loads user settings (`settingSources` includes `user`) and inherits the
+  full parent environment, so `~/.claude/settings.json` governs Cyrus sessions
+  exactly as interactive ones — auth, model and `permissions` included.
+- Full-permission path: `permissions.defaultMode: "bypassPermissions"` in
+  settings.json plus `IS_SANDBOX=1` in the worker environment. Under root the
+  settings key alone is rejected at startup (see `claude-code` Known
+  Pitfalls); the worker must be started with `IS_SANDBOX=1` already exported.
+- The home-directory Read deny list is code-level: everything under `~/`
+  outside the worktree, attachments and repository paths is denied — and
+  current Claude Code extends `Read` deny rules to file-reading Bash commands
+  (`ls`, `cat`), resolves symlinks to their real path before applying rules,
+  and lets explicit deny rules win over bypass mode. Only allow-listing a
+  directory lifts it.
+- `claudeAllowedDirectories` in `config.json` whitelists extra directories for
+  every Claude session: entries are `~`-expanded, granted as `Read(dir/**)`,
+  and carved out of the home-directory deny list. Hot reload; removing the key
+  restores the default.
 
 ## Manual follow-ups
 
@@ -349,6 +391,12 @@ process is not proof of reboot persistence.
   whitespace. OAuth authorization can succeed while this independent secret is
   wrong. Restart the worker after changing it: the direct webhook client captures
   the signing secret at startup. Do not disable verification to make events pass.
+  Also check for a glued file: appending to `.env` with `echo ... >>` when the
+  file lacks a trailing newline concatenates the new key onto the last line and
+  corrupts the secret while everything still parses — ensure the file ends with
+  a newline before appending. `/proc/<pid>/environ` does not show
+  dotenv-loaded values, so absence there proves nothing about the worker's
+  effective configuration.
 - **Only `Issue/update` after changing labels**: webhook delivery is working,
   but a label change only affects routing. Delegate the issue to the Cyrus app
   (or use a supported Agent mention flow) to create an Agent Session. If a prior

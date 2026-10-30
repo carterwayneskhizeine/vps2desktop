@@ -203,7 +203,7 @@ components:
     group: apps
     deps: [base-tools, uv]
     channel: uv-tool
-    summary: uv tool install webssh — Tornado + Paramiko + xterm.js SSH-in-the-browser, exposing the `wssh` binary. It has no authentication of its own, so bind a single private address (never 0.0.0.0) and match it to where the TLS terminator lives — a containerized Cloudflare Tunnel dials the Docker bridge gateway 172.17.0.1, not 127.0.0.1, and a loopback bind 502s. --fbidhttp blocks plain HTTP from non-private source IPs (Tailscale 100.x included); the origin check compares Origin netloc to Host including port. Ctrl+C/Ctrl+V never copy or paste in it — xterm.js preventDefaults both, ships 0x03/0x16 to the remote instead, has no OSC 52 and renders with canvas — copy through tmux copy-mode (base-tools).
+    summary: uv tool install webssh — Tornado + Paramiko + xterm.js SSH-in-the-browser, exposing the `wssh` binary. It has no authentication of its own, so bind a single private address (never 0.0.0.0) and match it to where the TLS terminator lives — a containerized Cloudflare Tunnel dials the Docker bridge gateway 172.17.0.1, not 127.0.0.1, and a loopback bind 502s. --fbidhttp blocks plain HTTP from non-private source IPs (Tailscale 100.x included); the origin check compares Origin netloc to Host including port. Enable --wpintvl=30 for a 30-second WebSocket heartbeat (not an idle logout timer); --timeout only covers SSH connection establishment. Existing services use a drop-in plus an approved restart, and Verify checks the live process. Ctrl+C/Ctrl+V never copy or paste in it — xterm.js preventDefaults both, ships 0x03/0x16 to the remote instead, has no OSC 52 and renders with canvas — copy through tmux copy-mode (base-tools).
 
   # --- runtime ---
   - id: node-nvm

@@ -107,11 +107,16 @@ also means re-applying it after `uv tool upgrade webssh` overwrites them.
 export PATH=/root/.local/bin:$PATH
 command -v wssh && wssh --version
 systemctl is-active --quiet wssh && ss -ltn | grep -qw 8127
+PID=$(systemctl show wssh --property=MainPID --value)
+test "$PID" -gt 0 && tr '\0' '\n' <"/proc/$PID/cmdline" | grep -Fxq -- '--wpintvl=30'
 ```
 
-All three passing means it is installed and serving — report `wssh --version` and skip.
-The Guard only proves it is listening; confirm the *address* separately, since a
-loopback bind in front of a containerized tunnel looks installed and healthy.
+All checks passing means it is installed, serving and running with the recommended
+30-second WebSocket heartbeat — report `wssh --version` and skip. If only the
+heartbeat check fails on an active service, apply the existing-service drop-in
+below; do not reinstall the package or replace the base unit.
+Confirm the *address* separately, since a loopback bind in front of a containerized
+tunnel can still look installed and healthy.
 
 
 ## Install
@@ -157,7 +162,7 @@ Wants=network-online.target
 
 [Service]
 Type=simple
-ExecStart=/root/.local/bin/wssh --address=172.17.0.1 --port=8127 --policy=warning
+ExecStart=/root/.local/bin/wssh --address=172.17.0.1 --port=8127 --policy=warning --wpintvl=30
 Restart=always
 RestartSec=3
 KillSignal=SIGTERM
@@ -171,6 +176,69 @@ systemctl enable --now wssh
 ```
 
 Substitute `127.0.0.1` in `ExecStart` if the terminator runs on the host.
+
+### Idle sessions and WebSocket keepalive
+
+The persistent systemd process and each browser's SSH session are separate.
+When a browser WebSocket disconnects, webssh closes its corresponding SSH channel;
+a healthy background service does not keep that login alive.
+
+Upstream defaults `--wpintvl` to **0** (no periodic WebSocket ping). Use
+`--wpintvl=30` to send a protocol-level ping every **30 seconds**, with the browser
+normally replying automatically. This keeps otherwise idle connections active
+through proxies such as Cloudflare, without sending keystrokes to the shell.
+It is **not** a 30-second idle logout timer and does not set a fixed maximum
+session age. Cloudflare's [WebSocket guidance](https://developers.cloudflare.com/network/websockets/)
+recommends keepalives for idle connections.
+
+Do not confuse the settings:
+
+- `--wpintvl=30`: WebSocket ping interval, in seconds. Tornado defaults its pong
+  response timeout to the same interval; an unresponsive client can still be
+  disconnected. See [Tornado's WebSocket settings](https://www.tornadoweb.org/en/stable/websocket.html).
+- `--timeout`: outbound SSH **connection establishment** timeout (default 3
+  seconds), not the idle lifetime of a successfully authenticated session.
+- `--delay`: recycling delay for a worker that has not attached to a WebSocket,
+  not an idle timeout for an active browser terminal.
+
+For an **existing** systemd service, first inspect `systemctl cat wssh.service`.
+Preserve the actual executable, bind address, port and other arguments. The example
+below matches the bridge-bound recipe above; adapt it rather than overwriting a
+host-side terminator's loopback bind or another existing setting. The empty
+`ExecStart=` clears the base command so systemd accepts the replacement.
+
+**Ask before restarting:** a restart disconnects existing WebSSH browser terminals.
+Once approved, add a persistent drop-in instead of rewriting the base unit:
+
+```bash
+install -d -m 0755 /etc/systemd/system/wssh.service.d
+install -m 0644 /dev/stdin /etc/systemd/system/wssh.service.d/keepalive.conf <<'EOF'
+[Service]
+ExecStart=
+ExecStart=/root/.local/bin/wssh --address=172.17.0.1 --port=8127 --policy=warning --wpintvl=30
+EOF
+systemctl daemon-reload
+systemctl restart wssh.service
+```
+
+Reconnect the browser after restarting, then check the **running process** using
+Verify below. `systemctl show ... -p ExecStart` alone describes the loaded command;
+without a restart an older process may still be running without the heartbeat.
+Removing only this drop-in and restarting restores the base unit's command.
+Do not restart sshd, change root authentication, or relax the origin/HTTP checks
+just to enable this WebSocket heartbeat.
+
+Heartbeat cannot preserve a connection through computer sleep, a suspended mobile
+browser, real network loss or an edge restart, and webssh has no authenticated
+session-resume mechanism. For work that must survive disconnection, start or
+reattach a tmux session after logging in:
+
+```bash
+tmux new-session -A -s work
+```
+
+A later SSH login can reattach to the same tmux session; it does **not** remove the
+need to authenticate to SSH again after an actual disconnection.
 
 A single-address bind is deliberate: it keeps an unauthenticated SSH-credential
 form off the public NIC. Before choosing it, check what else can reach the bridge
@@ -194,6 +262,12 @@ wssh --version                                   # 1.6.3
 systemctl is-active --quiet wssh && echo active
 systemctl is-enabled --quiet wssh && echo enabled
 
+# Assert the live process, not just a unit file waiting for its next restart
+PID=$(systemctl show wssh --property=MainPID --value)
+test "$PID" -gt 0
+tr '\0' '\n' <"/proc/$PID/cmdline" | grep -Fxq -- '--wpintvl=30'
+systemctl show wssh --property=DropInPaths --property=ExecStart
+
 # The bind address is the thing that actually breaks — assert it, don't eyeball it
 ss -ltn | grep -qw 8127 && ! ss -ltn | grep -qw '0.0.0.0:8127'
 
@@ -201,8 +275,9 @@ curl -sS -o /dev/null -w '%{http_code}\n' http://$ORIGIN:8127/                  
 curl -sS -o /dev/null -w '%{http_code}\n' http://$ORIGIN:8127/static/js/xterm.min.js  # 200
 curl -sS -o /dev/null -w '%{http_code}\n' http://$ORIGIN:8127/static/js/main.js       # 200
 
-# WebSocket upgrade — 101 Switching Protocols proves the terminal channel works.
-# curl then hangs holding the upgraded connection; that timeout is expected.
+# 101 proves the WebSocket upgrade only, not SSH login or heartbeat delivery.
+# Without an authenticated worker the server may immediately close the socket;
+# if curl waits on an open socket, its five-second timeout is expected.
 curl -sS -o /dev/null -m 5 -w '%{http_code}\n' http://$ORIGIN:8127/ws \
   -H 'Connection: Upgrade' -H 'Upgrade: websocket' \
   -H 'Sec-WebSocket-Version: 13' -H 'Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ=='   # 101
@@ -218,9 +293,26 @@ Asset paths are **relative** (`static/...`, no leading slash) — `/xterm/css/xt
 and `/static/main.js` both 404 and look like a broken install. Read the paths out of
 the served page instead of guessing.
 
-Record the version only after every command above passes.
+A direct plain-HTTP origin probe can legitimately return 403 if the server sees
+its source as a public IP (for example after source NAT); this is the `--fbidhttp`
+guard, not proof that the service stopped. Probe from the actual TLS terminator's
+network context instead, keeping the private bind and HTTP guard intact.
+
+To check the idle symptom end to end, log in through the public HTTPS hostname in
+a real browser and leave the terminal untouched longer than the previously failing
+idle period. An HTTP 200, a 101 upgrade or a running-process flag alone does not
+prove that the browser's long-idle SSH session survives. Enter SSH credentials only
+in the browser, never in a command log or shared catalog.
+
+Record the version only after the applicable Verify checks pass.
 
 ## Known Pitfalls
+
+- **Idle browser sessions disconnect even while systemd stays active.** Enable
+  `--wpintvl=30` and restart webssh, then reconnect; do not increase `--timeout`
+  expecting an idle-session fix. If SSH itself has `ChannelTimeout`, or the shell
+  has `TMOUT`, diagnose those separately. Keepalive does not defeat sleep or real
+  network loss; use tmux to preserve the remote work, not to bypass authentication.
 
 - **Ctrl+C / Ctrl+V never copy or paste** — xterm.js `preventDefault()`s both and
   ships `0x03` / `0x16` to the remote instead, with no clipboard support of its

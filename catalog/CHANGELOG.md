@@ -812,3 +812,23 @@ codex 0.163.0, claude-code native installer) on 2026-10-23.
 - INDEX.yaml: openwiki summary now names `~/.openwiki/.env` as the hand-over
   and states that the banner renders the default model label rather than the
   effective model.
+
+## c43 — 2026-10-30 — webssh: idle WebSocket keepalive and existing-service upgrades
+
+- webssh: the new-service recipe now sets `--wpintvl=30`, sending a WebSocket
+  protocol ping every 30 seconds instead of the upstream default of no periodic
+  ping. This is a heartbeat, not a 30-second idle logout or a fixed session age;
+  Tornado's default pong response timeout follows the ping interval.
+- Add an existing-service drop-in recipe that preserves the actual bind, port
+  and other arguments, and requires approval before restarting browser sessions.
+  No sshd, root authentication or Cloudflare configuration changes are needed.
+- Distinguish `--timeout` (SSH connection establishment) and `--delay` (unattached
+  worker recycling) from an authenticated session's idle lifetime. Document sleep
+  and network-loss limits, lack of session resume, and tmux reattachment without
+  claiming it removes the need to authenticate after a disconnection.
+- Guard and Verify now check `--wpintvl=30` in the running process, so an old
+  process cannot pass just because its unit file has been updated. Clarify that
+  HTTP 200 / WebSocket 101 are not long-idle SSH acceptance tests, and that a
+  plain-HTTP probe from a public/NATed source can be rejected by `--fbidhttp`.
+- INDEX.yaml: add the heartbeat setting and its upgrade/verification semantics
+  to the webssh summary. No components, dependencies or presets changed.

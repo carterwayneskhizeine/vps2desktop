@@ -10,6 +10,7 @@ presets:
     - xfce-desktop
     - xrdp
     - xrdp-audio
+    - rdp-guard
     - fcitx5-chinese
   ai-toolkit:
     - base-tools
@@ -32,6 +33,7 @@ presets:
     - xfce-desktop
     - xrdp
     - xrdp-audio
+    - rdp-guard
     - fcitx5-chinese
     - chrome
     - obsidian
@@ -113,6 +115,13 @@ components:
     deps: [xrdp]
     channel: apt
     summary: pipewire-module-xrdp plus root-session autostart workaround; the autostart guards on root's own runtime-dir sockets, never a bare pgrep; audio works after logout/login, not session reconnect.
+
+  - id: rdp-guard
+    name: RDP guard (fail2ban xrdp jail + kernel guards)
+    group: desktop
+    deps: [xrdp, fail2ban]
+    channel: apt
+    summary: Rate-bans RDP scanners via an xrdp jail that counts accepted connections (xrdp logs the peer IP per accept), plus iptables connlimit/recent backstops persisted via iptables-persistent. Catches single-source-port slow scanners that kernel rules cannot see; bantime.increment escalates repeat offenders.
 
   - id: fcitx5-chinese
     name: Chinese input (fcitx5)

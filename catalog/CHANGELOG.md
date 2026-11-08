@@ -856,3 +856,25 @@ codex 0.163.0, claude-code native installer) on 2026-10-23.
   contabo's local manifest components list and `installed:` record now carry
   aicommits 5.0.1 (2026-11-08); `last_sync` stays at c38 — this is an install
   on the owning machine, not a catalog change to offer.
+
+## c40 — 2026-11-08 — rdp-guard: new component; healthcheck-zombie pitfall (contabo)
+
+- New component `rdp-guard` (deps: xrdp, fail2ban): fail2ban `xrdp` jail that
+  bans on *accepted-connection* rate (xrdp logs the peer IP per accept, so
+  auth-less scanners are catchable), plus iptables connlimit/recent kernel
+  guards persisted with iptables-persistent. Added to the `remote-desktop`
+  and `full` presets.
+- rdp-guard pitfalls worth the threshold choice: scanners that reuse ONE
+  source port collapse to a single conntrack entry, so connlimit/recent never
+  fire — only the low-rate threshold (6 connections / 10 min) catches them;
+  two overlapping failregexes double-count and silently halve maxretry;
+  xrdp never times out silent clients (leaked procs must be killed by peer);
+  scanners return within ~1 min of unban, so `bantime.increment` escalation
+  is the actual neutralizer.
+- xrdp: pitfall cross-reference — public 3389 gets scanned continuously,
+  install rdp-guard.
+- docker-engine: pitfall — CMD-SHELL healthchecks become children of the
+  container's PID 1; with no init they zombie when the healthcheck times out
+  under load (clean exits get reaped, so the leak can start days late).
+  Diagnose zombie parents with `ps -eo ppid,stat,comm | awk '$2 ~ /^Z/'`;
+  fix with `init: true` on the service.

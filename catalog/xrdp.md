@@ -45,3 +45,4 @@ systemctl is-active xrdp && ss -ltn | grep ':3389 ' && grep -E '^(security_layer
 - In the RDP client, session type "Xorg"; leave color depth default on first try.
 - xrdp 0.9.x does not export `XRDP_SESSION` into sessions (0.10.x does) — the `xrdp-audio` component carries a workaround.
 - Restarting xrdp disconnects live RDP sessions — schedule it when nobody is attached.
+- **A public 3389 is scanned continuously**; one scanner can hold hundreds of concurrent connections (each forks an xrdp process) and drag system load into the hundreds. Install the `rdp-guard` component (fail2ban xrdp jail + kernel guards) — it is in the `remote-desktop` and `full` presets.

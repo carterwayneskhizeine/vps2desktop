@@ -832,3 +832,27 @@ codex 0.163.0, claude-code native installer) on 2026-10-23.
   plain-HTTP probe from a public/NATed source can be rejected by `--fbidhttp`.
 - INDEX.yaml: add the heartbeat setting and its upgrade/verification semantics
   to the webssh summary. No components, dependencies or presets changed.
+
+## c44 — 2026-11-08 — aicommits: new component, DeepSeek provider verified (contabo)
+
+- aicommits: **new component** — `catalog/aicommits.md` plus the `INDEX.yaml`
+  entry (id `aicommits`, group `ai-cli`, deps `node-nvm`, channel `npm`),
+  added to the `full` preset and the checklist. Nutlope/aicommits writes AI
+  commit messages from staged git changes; installed as
+  `npm i -g aicommits` (v5.0.1) under the nvm Node.
+- Provider: configured for **DeepSeek** via `provider=custom` in
+  `~/.aicommits` (`OPENAI_BASE_URL=https://api.deepseek.com`,
+  `OPENAI_API_KEY`, `OPENAI_MODEL`, `type=conventional`). Verified end-to-end
+  in a scratch repo: `aicommits` generated a conventional-style message and
+  committed it through the custom endpoint.
+- Pitfalls worth the chmod: `~/.aicommits` is created world-readable (0644)
+  and holds the API key — it is now 600 on contabo; aicommits only reads
+  `git diff --staged` (untracked files never join a generation); `-t/--type`
+  defaults to `plain` per invocation regardless of the stored `type=`;
+  `aicommits pr` creates real pull requests and `aicommits hook` installs a
+  per-repo `prepare-commit-msg` hook — neither belongs in a scratch repo.
+- INDEX.yaml: aicommits added to the `full` preset (it is "everything"); not
+  added to `ai-toolkit`, matching the recent openwiki/mmx-cli precedent.
+  contabo's local manifest components list and `installed:` record now carry
+  aicommits 5.0.1 (2026-11-08); `last_sync` stays at c38 — this is an install
+  on the owning machine, not a catalog change to offer.

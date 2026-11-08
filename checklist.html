@@ -204,6 +204,7 @@ const COMPONENTS = [
   {id:"browser-mcp",     name:"Browser MCP (sandboxed)", group:"ai-cli",   deps:["chrome","node-nvm","claude-code"], desc:"playwright + chrome-devtools MCP servers run unprivileged, so Chrome keeps its kernel sandbox — no --no-sandbox"},
   {id:"tavily-cli",      name:"tavily-cli (tvly)",       group:"ai-cli",   deps:["uv"],             desc:"Tavily search CLI as a uv tool (key is manual)"},
   {id:"openwiki",        name:"OpenWiki",                group:"ai-cli",   deps:["node-nvm"],       desc:"DeepAgents docs agent that writes and maintains a wiki for a codebase; provider key manual"},
+  {id:"aicommits",       name:"aicommits",               group:"ai-cli",   deps:["node-nvm"],       desc:"AI commit messages from staged changes; custom OpenAI-compatible provider (DeepSeek); ~/.aicommits holds the key — chmod 600"},
 ];
 
 const ALL = COMPONENTS.map(c => c.id);

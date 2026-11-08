@@ -60,6 +60,7 @@ presets:
     - browser-mcp
     - tavily-cli
     - openwiki
+    - aicommits
 
 components:
   # --- base ---
@@ -311,3 +312,10 @@ components:
     deps: [node-nvm]
     channel: npm
     summary: DeepAgents documentation agent that generates and maintains a wiki for a codebase (needs Node >= 22.22.0). npm blocks the transitive better-sqlite3 install script, so every install/upgrade reruns with --allow-scripts=better-sqlite3 or the native binding is silently missing; --version is not a flag — read the --help banner. Provider config lives in ~/.openwiki/.env, which the CLI loads itself (a shell export wins) — but the --help banner renders the built-in default model label, not the effective model.
+
+  - id: aicommits
+    name: aicommits
+    group: ai-cli
+    deps: [node-nvm]
+    channel: npm
+    summary: AI-written commit messages from staged git changes (Nutlope/aicommits). Talks to any OpenAI-compatible endpoint via provider=custom — verified with DeepSeek (OPENAI_BASE_URL/OPENAI_API_KEY/OPENAI_MODEL). ~/.aicommits holds the API key and ships world-readable (chmod 600 it). Only reads git diff --staged; -t defaults to plain regardless of the stored type; `aicommits hook` installs a per-repo prepare-commit-msg hook that automates every commit.

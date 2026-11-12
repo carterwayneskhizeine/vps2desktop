@@ -857,7 +857,7 @@ codex 0.163.0, claude-code native installer) on 2026-10-23.
   aicommits 5.0.1 (2026-11-08); `last_sync` stays at c38 — this is an install
   on the owning machine, not a catalog change to offer.
 
-## c40 — 2026-11-08 — rdp-guard: new component; healthcheck-zombie pitfall (contabo)
+## c45 — 2026-11-08 — rdp-guard: new component; healthcheck-zombie pitfall (contabo)
 
 - New component `rdp-guard` (deps: xrdp, fail2ban): fail2ban `xrdp` jail that
   bans on *accepted-connection* rate (xrdp logs the peer IP per accept, so
@@ -879,7 +879,7 @@ codex 0.163.0, claude-code native installer) on 2026-10-23.
   Diagnose zombie parents with `ps -eo ppid,stat,comm | awk '$2 ~ /^Z/'`;
   fix with `init: true` on the service.
 
-## c45 — 2026-11-12 — cyrus: extending agent sessions (MCP, plugins, skills)
+## c46 — 2026-11-12 — cyrus: extending agent sessions (MCP, plugins, skills)
 
 - cyrus: new "Extending Claude sessions" section — the three-step MCP
   registration (`~/.cyrus/mcp-configs/` server file + `linearMcpConfigs`

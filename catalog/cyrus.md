@@ -165,6 +165,92 @@ from the issue when it should fall back to `claude`.
   and carved out of the home-directory deny list. Hot reload; removing the key
   restores the default.
 
+## Extending Claude sessions (MCP, plugins, skills)
+
+Every agent session is spawned through the Claude Agent SDK with
+`strictMcpConfig: true` by default: only the servers Cyrus itself injects
+(`linear`, `cyrus-tools`, `cyrus-docs`, plus `slack` when `SLACK_BOT_TOKEN`
+is set) load. Project `.mcp.json`, user-settings MCP servers, plugins and
+claude.ai connectors are ignored, so a Claude Code plugin enabled in
+`~/.claude/settings.json` (e.g. playwright) is invisible to Cyrus sessions
+unless the gate below is opened or the server is registered through Cyrus's
+own config.
+
+### Registering an MCP server (three steps, all required)
+
+1. **Server definition** — a `.mcp.json`-format file under
+   `~/.cyrus/mcp-configs/`, e.g.:
+
+   ```json
+   { "mcpServers": { "playwright": { "command": "npx", "args": ["-y", "@playwright/mcp@latest"] } } }
+   ```
+
+   On a root-only host, point a browser server at the `browser-mcp`
+   Component's launcher instead
+   (`"command": "/root/.claude/mcp-wrappers/playwright-mcp.sh"`): the
+   unprivileged run user keeps Chrome's kernel sandbox, and the launcher
+   falls back to headless when no display exists. Avoid `--no-sandbox`.
+
+2. **Reference** — in `~/.cyrus/config.json`, either top-level
+   `"linearMcpConfigs": ["~/.cyrus/mcp-configs/<file>.json"]` (all Linear
+   sessions, every repository) or `"mcpConfigPath"` on a `repositories[]`
+   entry (that repository only). The per-repo path is consulted only when
+   the repository also carries its own `allowedTools` override — the
+   permission set and the server set travel as one unit
+   (`resolveIssueMcpConfigPath` in the edge worker).
+
+3. **Allowlist prefix** — `"mcp__<server>"` appended to
+   `linearAllowedTools` (top level) or the repository's `allowedTools`.
+   Both are **verbatim whole-table replacements** of the built-in default
+   (`LINEAR_DEFAULT_ALLOWED_TOOLS` in
+   `packages/core/src/allowed-tools-defaults.ts`), not appends: copy the
+   full default list, then add the prefix. Without it the server loads but
+   every tool call is denied.
+
+   These config fields hot-reload (`RELOAD_MERGED_KEYS` in the edge
+   worker's `ConfigManager`); the next session picks them up without a
+   worker restart.
+
+### Opening the plugin gate
+
+`"strictMcpConfig": false` at the top level lets sessions load, per
+`settingSources` (`user`/`project`/`local`): plugins enabled in
+`~/.claude/settings.json` (`enabledPlugins`), the session worktree's
+`.mcp.json`, and user-scope MCP servers. Two consequences:
+
+- The allowlist still gates *calls* — a loaded plugin server whose
+  `mcp__<server>` prefix is not allowlisted is visible but not callable.
+- The gate is workspace-global: every session spawns every user-enabled
+  plugin's server, regardless of repository.
+
+### Skills: three sources and the symlink bridge
+
+Skills are discovered from exactly three places, and the resulting name
+list is passed to the SDK as a context filter (unlisted skills are hidden
+and rejected by the Skill tool — a filter, not a sandbox):
+
+1. `~/.cyrus/user-skills-plugin/skills/<name>/` — user skills, take
+   precedence over built-ins; an optional `scope.json`
+   (`repositoryIds`/`linearTeamIds`/`linearLabelIds`) restricts a skill to
+   matching sessions.
+2. `~/.cyrus/cyrus-skills-plugin/skills/<name>/` — the built-in workflow
+   skills (investigate, debug, implementation, verify-and-ship,
+   summarize); redeployed only when the directory is missing, so edits
+   persist.
+3. `<repo>/.claude/skills/<name>/` committed in the repository — scoped
+   to that repository's sessions by construction (worktrees check it out
+   from the base branch).
+
+`~/.claude/skills` is **not** scanned. A user-level skill reaches Cyrus
+sessions through a symlink into the user plugin (the directory scan accepts
+symlinks); link the canonical copy, not an intermediate symlink:
+
+```bash
+ln -s /root/.agents/skills/<name> ~/.cyrus/user-skills-plugin/skills/<name>
+```
+
+Effective for the next session; no worker restart.
+
 ## Manual follow-ups
 
 ### 1. Publish the webhook endpoint
@@ -455,3 +541,15 @@ process is not proof of reboot persistence.
   in on the user's laptop is not automatically available to a CLI on the VPS.
   Have the user open the displayed URLs themselves; do not extract cookies,
   tokens or browser profiles to bypass that boundary.
+- **`linearAllowedTools` / repo `allowedTools` freeze the tool set.** These
+  lists replace the built-in default verbatim; nothing is merged. After
+  updating the Cyrus checkout, diff against the current
+  `LINEAR_DEFAULT_ALLOWED_TOOLS` — a stale copy silently hides new default
+  tools (and keeps removed ones) from every session using it.
+- **Injecting a plugin via a worktree's `settings.local.json` does not
+  work.** `enabledPlugins` is honored only for plugins with an install
+  record for that path, and `~/.claude/plugins/installed_plugins.json`
+  binds local-scope installs to specific project paths — a fresh worktree
+  has none, so the entry is ignored and subsequently pruned from the file.
+  User-scope plugin installs or the MCP registration above are the only
+  durable routes.

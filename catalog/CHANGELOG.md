@@ -878,3 +878,23 @@ codex 0.163.0, claude-code native installer) on 2026-10-23.
   under load (clean exits get reaped, so the leak can start days late).
   Diagnose zombie parents with `ps -eo ppid,stat,comm | awk '$2 ~ /^Z/'`;
   fix with `init: true` on the service.
+
+## c45 — 2026-11-12 — cyrus: extending agent sessions (MCP, plugins, skills)
+
+- cyrus: new "Extending Claude sessions" section — the three-step MCP
+  registration (`~/.cyrus/mcp-configs/` server file + `linearMcpConfigs`
+  or per-repo `mcpConfigPath` reference + `mcp__<server>` allowlist
+  prefix), the `strictMcpConfig` gate (default `true` hides Claude Code
+  plugins from sessions; `false` loads user-enabled plugins workspace-wide
+  while the allowlist still gates calls), and the three skill sources with
+  the symlink bridge from `~/.agents/skills` into
+  `~/.cyrus/user-skills-plugin/skills/` (the scan accepts symlinks;
+  `~/.claude/skills` itself is never scanned).
+- cyrus pitfalls: allowlists are whole-table replacements that shadow
+  upstream default changes after an update; `enabledPlugins` in a
+  worktree's `settings.local.json` is a dead end (install records are
+  path-bound and the entry gets pruned).
+- Browser server on a root host: register the `browser-mcp` Component's
+  launcher as the Cyrus playwright server instead of `--no-sandbox`
+  (cross-reference; verified live — navigate + screenshot from a Cyrus
+  session).

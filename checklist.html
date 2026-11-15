@@ -172,6 +172,7 @@ const COMPONENTS = [
   {id:"base-tools",      name:"Base toolset",            group:"base",     deps:[],                 desc:"curl/git/jq/rg/tmux/htop/gh/build-essential/python3 — everything else assumes these"},
   {id:"bash-completion", name:"bash-completion (Tab)",    group:"base",     deps:[],                 desc:"Tab completion for hundreds of third-party CLIs in plain bash — the package alone does nothing until ~/.bashrc sources it"},
   {id:"fail2ban",        name:"fail2ban (sshd jail)",    group:"base",     deps:[],                 desc:"Bans IPs hammering SSH. Strongly recommended with root password login"},
+  {id:"sshd-tiers",      name:"sshd ban tiers",           group:"base",     deps:["fail2ban"],       desc:"Slow/daily scan quotas + recidive repeat-offender jail; catches trickle scanners the stock jail misses"},
   {id:"tailscale",       name:"Tailscale",                group:"base",     deps:[],                 desc:"Private tailnet networking via official stable apt repo; login manual"},
   {id:"xfce-desktop",    name:"Xfce desktop",            group:"desktop",  deps:[],                 desc:"Xfce 4 session/panel/terminal + Noto CJK fonts"},
   {id:"xrdp",            name:"xrdp remote desktop",     group:"desktop",  deps:["xfce-desktop"],   desc:"RDP into the Xfce session, TLS hardened"},

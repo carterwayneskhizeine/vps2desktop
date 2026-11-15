@@ -898,3 +898,31 @@ codex 0.163.0, claude-code native installer) on 2026-10-23.
   launcher as the Cyrus playwright server instead of `--no-sandbox`
   (cross-reference; verified live — navigate + screenshot from a Cyrus
   session).
+
+## c47 — 2026-11-15 — new component: sshd-tiers; fail2ban / rdp-guard catch up with live state
+
+- New `sshd-tiers` (deps: fail2ban): `sshd-slow` (8 attempts / 1 h → 6 h),
+  `sshd-daily` (15 / 1 d → 1 d) and `recidive` (3 bans / 24 h → all ports,
+  1 week), plus `[DEFAULT] bantime.increment` (factor 2, cap 4 weeks) and
+  `dbpurgeage = 7d`. Rationale in the doc: fail2ban 1.1.0 normalizes the retry
+  counter to the findtime window, so a trickle scanner converges below maxretry
+  and is never banned regardless of daily volume; a scanner sending exactly
+  `maxretry - 1` attempts per wave is legal in every window.
+- sshd-tiers pitfalls: `[DEFAULT] backend = systemd` in any `jail.d/*.conf`
+  (panel integrations ship one) routes recidive to a journal that holds only
+  start/stop lines, leaving it silently at `Total failed: 0`; enabling recidive
+  replays the whole log and immediately bans every IP with ≥3 recent bans;
+  jail-level `ignoreip` replaces the `[DEFAULT]` list instead of merging; jails
+  without `port` inherit `port = 0:65535` and their bans reject every TCP port;
+  manual `banip` expires with the jail's bantime, not the escalation policy.
+- fail2ban: replaced the stale "ban windows default to 10 minutes" claim with
+  the increment/return dynamic; documented the nftables backend
+  (`nft list chain inet f2b-table f2b-chain`, not `iptables -S`), the 1.1.0
+  `fail2ban-client get <jail> action` IndexError, the file-log-vs-journal split,
+  and pointed slow/repeat-offender cases at `sshd-tiers`.
+- rdp-guard: xrdp `findtime` 600 → 3600 — at one connection per 3.6 min the
+  normalized retry pins at 5 on a 10-minute window forever, and trips in ~14
+  min on an hour; Verify now reads the effective `findtime`; documented that the
+  jail's `ignoreip` replaces the global whitelist; escalation cap reworded
+  (`bantime.maxtime`: 1 week by default, 4 weeks with sshd-tiers).
+- Added `sshd-tiers` to the `full` preset and to checklist.html.

@@ -29,6 +29,7 @@ presets:
     - base-tools
     - bash-completion
     - fail2ban
+    - sshd-tiers
     - tailscale
     - xfce-desktop
     - xrdp
@@ -86,6 +87,13 @@ components:
     deps: []
     channel: apt
     summary: Bans IPs that repeatedly fail SSH auth. Strongly recommended alongside root password login.
+
+  - id: sshd-tiers
+    name: sshd ban tiers (slow/daily + recidive)
+    group: base
+    deps: [fail2ban]
+    channel: apt
+    summary: Adds sshd-slow (8/1h -> 6h), sshd-daily (15/1d -> 1d) and recidive (3 bans/24h -> all ports, 1 week) plus exponential bantime escalation. The stock jail only catches bursts because fail2ban normalizes retries to the findtime window, so trickle and maxretry-1 scanners never trip it.
 
   - id: tailscale
     name: Tailscale

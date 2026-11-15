@@ -50,15 +50,21 @@ clients that never attempt auth.
    backend   = auto
    logpath   = /var/log/xrdp.log
    filter    = xrdp
-   # Ban anyone opening more than 6 connections within 10 minutes (>=0.6/min).
-   # Normal clients open 1-2 connections per session; slow scanners sustain
-   # ~0.7/min while reusing ONE source port (see Pitfalls).
+   # Ban anyone opening more than 6 connections within an hour. fail2ban 1.1.0
+   # normalizes the retry counter to the findtime window: a scanner at one
+   # connection per 3.6 min settles at retry 5 on a 10-minute window and is
+   # never banned; the hour window trips it after ~14 min. Normal clients open
+   # 1-2 connections per session and are unaffected.
    maxretry  = 6
-   findtime  = 600
+   findtime  = 3600
    bantime   = 1h
    bantime.increment = true
    ignoreip  = 127.0.0.1/8 ::1 100.64.0.0/10 <owner-public-ip>
    ```
+
+   A jail-level `ignoreip` **replaces** the `[DEFAULT]` list instead of
+   extending it — repeat every owner address here, because a global whitelist
+   alone does not protect this jail.
 
    `backend = auto` is required when fail2ban's global default is `systemd`
    (Debian's `defaults-debian.conf`): xrdp logs to a file, not the journal.
@@ -83,6 +89,7 @@ clients that never attempt auth.
 
 ```bash
 fail2ban-client status xrdp | head -4                                  # jail active, counting
+fail2ban-client get xrdp findtime                                     # 3600 — effective window
 iptables -C INPUT -p tcp --dport 3389 -m connlimit --connlimit-above 10 --connlimit-mask 32 -j DROP && echo connlimit-ok
 grep -c 3389 /etc/iptables/rules.v4                                    # >= 3 persisted rules
 ```
@@ -96,7 +103,7 @@ overlapping regexes double-count failures and halve the effective maxretry).
 - **Single-source-port scanners blind the kernel guards**: a client that
   reuses the same source port for every connection shows up as *one*
   conntrack entry, so `connlimit`/`recent` never fire no matter how many
-  sockets it holds. Only the fail2ban rate threshold (6/10 min) catches it;
+  sockets it holds. Only the fail2ban rate threshold (6 per hour) catches it;
   do not "fix" the threshold upward just because the kernel rules look
   impressive.
 - **xrdp never times out silent clients**: every accepted connection forks an
@@ -105,9 +112,10 @@ overlapping regexes double-count failures and halve the effective maxretry).
   peer (`ss -tnp ... | grep <ip> | pid=`, then `kill -9`). Zombies from other
   parents are diagnosed with `ps -eo ppid,stat,comm | awk '$2 ~ /^Z/'`.
 - **Scanners return within ~1 minute of every unban** — `bantime.increment`
-  (1h → 2h → 4h → … capped at 1 week) is what actually neutralizes repeat
-  offenders; a flat bantime just schedules their comeback.
-- **Self-ban risk**: an RDP client in reconnect-storm mode can trip 6/10min.
+  (1h → 2h → 4h → … capped by `bantime.maxtime`; 1 week by default, 4 weeks
+  with `sshd-tiers`) is what actually neutralizes repeat offenders; a flat
+  bantime just schedules their comeback.
+- **Self-ban risk**: an RDP client in reconnect-storm mode can trip 6/hour.
   Whitelist the owner's IPs in `ignoreip` (tailnet `100.64.0.0/10` is always
   whitelisted), and keep the unban command in the back pocket:
   `fail2ban-client set xrdp unbanip <ip>`.

@@ -203,6 +203,7 @@ const COMPONENTS = [
   {id:"agent-browser",   name:"agent-browser",           group:"ai-cli",   deps:["node-nvm"],       desc:"Browser automation CLI + managed browser binaries"},
   {id:"mmx-cli",         name:"MiniMax CLI (mmx)",       group:"ai-cli",   deps:["node-nvm"],       desc:"MiniMax's official CLI — text chat, image/video/speech, vision, web search and quota; auth manual"},
   {id:"browser-mcp",     name:"Browser MCP (sandboxed)", group:"ai-cli",   deps:["chrome","node-nvm","claude-code"], desc:"playwright + chrome-devtools MCP servers run unprivileged, so Chrome keeps its kernel sandbox — no --no-sandbox"},
+  {id:"mcp-chrome",      name:"Chrome MCP Server",       group:"ai-cli",   deps:["base-tools","node-nvm"], desc:"Your own persistent Chrome as an MCP endpoint on 127.0.0.1:12306 (Chrome for Testing + AppArmor userns profile, runs unprivileged)"},
   {id:"tavily-cli",      name:"tavily-cli (tvly)",       group:"ai-cli",   deps:["uv"],             desc:"Tavily search CLI as a uv tool (key is manual)"},
   {id:"openwiki",        name:"OpenWiki",                group:"ai-cli",   deps:["node-nvm"],       desc:"DeepAgents docs agent that writes and maintains a wiki for a codebase; provider key manual"},
   {id:"aicommits",       name:"aicommits",               group:"ai-cli",   deps:["node-nvm"],       desc:"AI commit messages from staged changes; custom OpenAI-compatible provider (DeepSeek); ~/.aicommits holds the key — chmod 600"},

@@ -61,6 +61,7 @@ presets:
     - agent-browser
     - mmx-cli
     - browser-mcp
+    - mcp-chrome
     - tavily-cli
     - openwiki
     - aicommits
@@ -308,6 +309,13 @@ components:
     deps: [node-nvm]
     channel: npm
     summary: npm i -g mmx-cli — MiniMax's official CLI for text/image/video/speech/vision/search and quota. Authentication (OAuth or API key) is manual.
+
+  - id: mcp-chrome
+    name: Chrome MCP Server (mcp-chrome)
+    group: ai-cli
+    deps: [base-tools, node-nvm]
+    channel: npm
+    summary: Drives your own persistent Chrome as an MCP server — extension + native-messaging bridge exposing streamable HTTP on 127.0.0.1 port 12306 (27 tools, cookies survive restarts). Ships Chrome for Testing because branded google-chrome 137+ ignores --load-extension, runs it as an unprivileged account so Chrome keeps its sandbox, and needs three fixes this catalog had to discover — the AppArmor profile that allows unprivileged user namespaces on Ubuntu 23.10+, the native-messaging manifest under Chrome-for-Testing's own brand path, and a run account that can traverse /root to reach the nvm Node. Only one MCP transport at a time — a second client gets a 500 until the popup disconnects or the service restarts.
 
   - id: browser-mcp
     name: Browser MCP (sandboxed)

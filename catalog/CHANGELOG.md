@@ -926,3 +926,39 @@ codex 0.163.0, claude-code native installer) on 2026-10-23.
   jail's `ignoreip` replaces the global whitelist; escalation cap reworded
   (`bantime.maxtime`: 1 week by default, 4 weeks with sshd-tiers).
 - Added `sshd-tiers` to the `full` preset and to checklist.html.
+
+## c48 — 2026-11-17 — new component: mcp-chrome
+
+- New `mcp-chrome` (deps: base-tools, node-nvm): drives the machine's own
+  persistent Chrome as an MCP server — unpacked extension + native-messaging
+  bridge exposing streamable HTTP on `127.0.0.1:12306/mcp` with 27 tools
+  (navigate, screenshot, click/fill, read page, network capture, history,
+  bookmarks, GIF recorder). Real profile, so cookies and logins survive
+  restarts. Ships Chrome for Testing (stable channel, looked up at install
+  time) and runs the whole stack as an unprivileged account, so Chrome keeps
+  its own sandbox — no `--no-sandbox` on a root-managed VPS. Verified live on
+  Ubuntu 26.04: 27 tools listed, navigate + read-page round trip, endpoint
+  back 3 s after a cold service start.
+- Three failure modes this component had to work around, all documented as
+  pitfalls. Branded google-chrome 157 silently ignores `--load-extension` (the
+  extension never registers), so the extension needs Chromium/Chrome for
+  Testing. Chrome for Testing 158 does not read
+  `/etc/opt/chrome/native-messaging-hosts/` — a manifest only there yields
+  `Specified native messaging host not found.` — it uses
+  `/etc/opt/chrome_for_testing/native-messaging-hosts/` and
+  `~/.config/google-chrome-for-testing/NativeMessagingHosts/`. And on Ubuntu
+  23.10+ (`apparmor_restrict_unprivileged_userns=1`) a non-root Chrome aborts
+  with `No usable sandbox!` until the binary gets an AppArmor profile with
+  `userns,` and its `chrome_sandbox` helper is setuid.
+- Other pitfalls: `install -d -o` leaves the run account's `~/.config`
+  root-owned and Chrome dies with `chrome_crashpad_handler: --database is
+  required` (SIGTRAP, exit 133); npm ≥ 12 blocks both the bridge postinstall
+  and better-sqlite3's native build, so the install needs `--allow-scripts`;
+  the MCP endpoint holds a single transport, so a second client gets 500
+  `Already connected to a transport` and `DELETE /mcp` answers 400 — the reset
+  is the popup's Disconnect/Connect or a service restart; Disconnect also
+  writes `nativeAutoConnectEnabled=false`, leaving the endpoint down after a
+  restart until Connect is clicked again. Headless Chrome does not beat
+  Cloudflare managed challenges (measured stuck at "Performing security
+  verification") — for WAF-protected sites use a headful browser instead.
+- Added `mcp-chrome` to the `full` preset and to checklist.html.

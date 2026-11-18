@@ -199,6 +199,7 @@ const COMPONENTS = [
   {id:"aichat",          name:"aichat",                  group:"ai-cli",   deps:[],                 desc:"All-in-one LLM CLI, static binary from GitHub latest release"},
   {id:"codex",           name:"OpenAI Codex CLI",        group:"ai-cli",   deps:["node-nvm"],       desc:"npm global (@openai/codex)"},
   {id:"opencode",        name:"OpenCode",                group:"ai-cli",   deps:["node-nvm"],       desc:"npm global (package is opencode-ai)"},
+  {id:"dsh",            name:"DeepSeek Harness (dsh)",  group:"ai-cli",   deps:["node-nvm"],       desc:"npm global (@deepseek-ai/dsh) — agent runtime + bundled web UI; API key manual"},
   {id:"pi",              name:"pi coding agent",         group:"ai-cli",   deps:["node-nvm"],       desc:"npm global (@earendil-works/pi-coding-agent)"},
   {id:"agent-browser",   name:"agent-browser",           group:"ai-cli",   deps:["node-nvm"],       desc:"Browser automation CLI + managed browser binaries"},
   {id:"mmx-cli",         name:"MiniMax CLI (mmx)",       group:"ai-cli",   deps:["node-nvm"],       desc:"MiniMax's official CLI — text chat, image/video/speech, vision, web search and quota; auth manual"},
@@ -213,7 +214,7 @@ const ALL = COMPONENTS.map(c => c.id);
 const PRESETS = [
   {key:"minimal",        label:"Minimal",        ids:["base-tools"], hint:"just the foundation toolset"},
   {key:"remote-desktop", label:"Remote Desktop", ids:["base-tools","xfce-desktop","xrdp","xrdp-audio","fcitx5-chinese"], hint:"a GUI you can RDP into"},
-  {key:"ai-toolkit",     label:"AI Toolkit",     ids:["base-tools","node-nvm","uv","claude-code","cyrus","cc-switch-cli","aichat","codex","opencode","pi","agent-browser","tavily-cli"], hint:"foundation + AI CLIs"},
+  {key:"ai-toolkit",     label:"AI Toolkit",     ids:["base-tools","node-nvm","uv","claude-code","cyrus","cc-switch-cli","aichat","codex","opencode","dsh","pi","agent-browser","tavily-cli"], hint:"foundation + AI CLIs"},
   {key:"full",           label:"Full",           ids:ALL, hint:"everything"},
 ];
 

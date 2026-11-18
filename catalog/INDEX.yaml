@@ -25,6 +25,7 @@ presets:
     - pi
     - agent-browser
     - tavily-cli
+    - dsh
   full:  # everything
     - base-tools
     - bash-completion
@@ -288,6 +289,13 @@ components:
     deps: [node-nvm]
     channel: npm
     summary: npm i -g opencode-ai (package is NOT "opencode"). Login is manual.
+
+  - id: dsh
+    name: DeepSeek Harness (dsh)
+    group: ai-cli
+    deps: [node-nvm]
+    channel: npm
+    summary: npm global (@deepseek-ai/dsh) — DeepSeek's agent runtime plus bundled web UI (dsh web, foreground process, no service unit). Bind one private address — 172.17.0.1 when a containerized Cloudflare Tunnel fronts it; --public-url/--trusted-host must match the public HTTPS hostname. Plain HTTP listener, no TLS of its own. latest dist-tag lags next; npm ≥12 blocks install scripts but node-pty ships prebuilds so it still runs. Upgrades land only after a restart, which rotates the startup token. API key manual, ~/.dsh/.credentials.yaml 0600.
 
   - id: pi
     name: pi coding agent

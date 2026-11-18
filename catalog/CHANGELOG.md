@@ -962,3 +962,34 @@ codex 0.163.0, claude-code native installer) on 2026-10-23.
   Cloudflare managed challenges (measured stuck at "Performing security
   verification") — for WAF-protected sites use a headful browser instead.
 - Added `mcp-chrome` to the `full` preset and to checklist.html.
+
+## c49 — 2026-11-18 — new component: dsh
+
+- New `dsh` (deps: node-nvm): DeepSeek's agent harness as an npm global
+  (`@deepseek-ai/dsh`) — agent runtime plus a bundled web UI (`dsh web`, a
+  foreground process with no service unit; run it in tmux). Sessions, profiles
+  and storages live under `~/.dsh/`; the DeepSeek API key is entered in the
+  Web UI and lands in `~/.dsh/.credentials.yaml` (0600) — manual, never
+  automated.
+- Verified live on Ubuntu 26.04 through a real upgrade 0.2.2-rc.1 →
+  0.2.2-rc.4: `dsh --version` reports the new version, the nested `node-pty`
+  native module loads, the listener answers on its private bind, and the
+  tunnel-fronted public hostname returns the auth wall (401 without token).
+- Pitfalls documented from that run: npm ≥ 12 blocks the install scripts
+  (`node-pty`, `koffi`, `protobufjs`, `@google/genai`,
+  `@deepseek-ai/dsh-subprocess-local`) but the install still works because
+  `node-pty` ships prebuilds for every platform — only reach for
+  `--allow-scripts` if Verify shows a native module failing to load. The
+  `latest` dist-tag lags `next` (measured `latest=0.2.2-rc.1` vs
+  `next=0.2.2-rc.4`), so a plain reinstall can silently pin an older release.
+  Upgrades land only after a restart, which interrupts in-flight agent turns
+  and rotates the startup token in the URL. `dsh web` opens a browser unless
+  `--no-open`; bind one private address (`172.17.0.1` when a containerized
+  Cloudflare Tunnel fronts it, since the container cannot see loopback);
+  `--public-url`/`--trusted-host` must match the public HTTPS hostname; the
+  listener is plain HTTP with no TLS of its own — terminate TLS in front or
+  pass `--tls-cert`/`--tls-key`.
+- Added `dsh` to the `ai-toolkit` preset (INDEX.yaml and checklist.html,
+  kept in sync) and to the checklist COMPONENTS array; it joins `full`
+  automatically.
+

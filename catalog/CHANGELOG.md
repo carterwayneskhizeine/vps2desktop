@@ -993,3 +993,21 @@ codex 0.163.0, claude-code native installer) on 2026-10-23.
   kept in sync) and to the checklist COMPONENTS array; it joins `full`
   automatically.
 
+
+## c50 — 2026-11-23 — aichat: opencode.ai Go session header, and the `-m` flag order
+
+- The opencode.ai Go endpoint rejects every request that lacks an
+  `x-opencode-session` header with `HTTP 400` / `type: MissingSessionID`
+  ("cannot be routed efficiently"). aichat has no option for it — inject it
+  per client with a patch block (`patch.chat_completions.'.*'.headers.
+  x-opencode-session`). The same block works for a `type: claude` client on
+  that host; the patch api key stays `chat_completions` even though the
+  request path is `/messages`.
+- `-m` must come *before* the prompt text. aichat treats trailing arguments
+  as prompt text, so `aichat -S "hi" -m foo:bar` sends the literal
+  `hi -m foo:bar` as the prompt and silently keeps the default model. The
+  wrong order looks like a broken model selector; check the `model` field of
+  the request body before blaming the client.
+- The `Verify` step in catalog/aichat.md now says that `--list-models` and
+  `--info` never open a connection — only the real `aichat -S "reply with
+  OK"` call proves the *default* client works.

@@ -49,6 +49,31 @@ rm -rf aichat aichat.tar.gz
 - **`--version` does not read the config.** A host with no `~/.config/aichat/`
   at all still passes the `Verify` above, so the version check alone cannot
   prove a hand-over worked. Use the checks in *Manual follow-ups* instead.
+- **The opencode.ai Go endpoint rejects requests without an
+  `x-opencode-session` header.** The answer is `HTTP 400` with
+  `type: MissingSessionID` ("cannot be routed efficiently"). Upstream asks
+  for a stable session id per conversation so the gateway can route and cache:
+  https://opencode.ai/docs/console/go/#where-can-i-use-it — inject it with a
+  per-client patch block:
+  ```yaml
+  - type: openai-compatible
+    name: opencode-go
+    api_base: https://opencode.ai/zen/go/v1
+    api_key: xxx
+    patch:
+      chat_completions:
+        '.*':
+          headers:
+            x-opencode-session: <stable-id>
+  ```
+  The same block works for a `type: claude` client on the same host — the patch
+  api key stays `chat_completions` even though the request path is `/messages`.
+- **Put `-m` before the prompt text.** aichat takes trailing arguments as
+  prompt text (so a prompt may itself contain flags), so `aichat -S "hi" -m
+  foo:bar` sends the literal string `hi -m foo:bar` as the prompt and keeps
+  the *default* model. Correct order: `aichat -m foo:bar -S "hi"`. The wrong
+  order reads as "the model selector is broken" — check the `model` field of
+  the request body before blaming the client.
 
 ## Manual follow-ups
 
@@ -65,3 +90,7 @@ rm -rf aichat aichat.tar.gz
   aichat --info             # shows the effective default model
   aichat -S "reply with OK" # one real call proves the API key works
   ```
+  The real call is the only check that proves the *default* client works —
+  `--list-models` and `--info` never open a connection, so a broken default
+  (missing key, missing `x-opencode-session`) passes both and only fails on
+  the call.
